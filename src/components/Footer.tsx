@@ -1,3 +1,5 @@
+import { Logo } from './Logo';
+
 export function Footer() {
   return (
     <footer className="bg-canvas py-[64px] border-t border-hairline">
@@ -5,7 +7,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-[48px]">
           <div className="col-span-1 md:col-span-2 pr-8">
             <div className="flex items-center gap-3 mb-4">
-              <span className="font-sans font-medium text-[18px] tracking-tight text-ink">Studio</span>
+              <Logo size={36} />
             </div>
             <p className="text-[14px] text-body font-sans leading-[1.5] max-w-[280px]">
               The creator workspace for Code Plus Academy. Write, publish, and manage everything you teach.

@@ -10,8 +10,8 @@ const features = [
     description: 'Start with 10 built-in templates, including Course, Tech Deep Dive, Project Showcase, Comparison, and Toolkit.',
   },
   {
-    title: 'YouTube publishing',
-    description: 'Paste a YouTube link (long-form or Short) and Studio automatically pulls in the title, thumbnail, duration, and tags.',
+    title: 'YouTube & Instagram Reels publishing',
+    description: 'Paste a YouTube link (long-form or Short) or Instagram Reel link and Studio automatically pulls in the title, thumbnail, duration, and tags.',
   },
   {
     title: 'Study resource uploads',

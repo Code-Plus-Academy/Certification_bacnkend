@@ -14,7 +14,7 @@ const steps = [
   {
     number: '03',
     title: 'Publish',
-    description: 'Publish your article, sync your YouTube video, or distribute your study resources directly to your students.',
+    description: 'Publish your article, sync your YouTube videos & Instagram Reels, or distribute your study resources directly to your students.',
   },
 ];
 

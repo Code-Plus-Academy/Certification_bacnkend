@@ -68,3 +68,26 @@
     font-weight: 400;
   }
 }
+
+@keyframes studioGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-studio-gradient {
+  background: linear-gradient(135deg, #38BDF8 0%, #6366F1 30%, #A855F7 65%, #C084FC 85%, #38BDF8 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: studioGradientShift 6s ease infinite;
+}
+

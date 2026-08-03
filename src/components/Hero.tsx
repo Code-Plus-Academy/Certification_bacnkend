@@ -15,11 +15,11 @@ export function Hero() {
         }`}
       >
         <h1 className="text-[40px] md:text-[56px] lg:text-[72px] font-sans font-normal leading-[1.1] mb-6 text-ink tracking-[-2.16px] max-w-4xl">
-          Write, publish, and manage everything you teach — with AI that drafts the first version.
+          Write, publish, and manage everything you teach — with AI.
         </h1>
         
         <p className="text-[16px] text-body mb-8 max-w-2xl leading-[1.5] font-sans">
-          A unified workspace for creators. Draft articles instantly with AI, sync YouTube videos effortlessly, and upload structured study notes for your students.
+          A unified workspace for creators published on <strong className="text-ink font-semibold">Code Plus Academy</strong>. Draft articles instantly with AI, sync YouTube videos &amp; Instagram Reels effortlessly, and upload structured study notes for your students.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-16">

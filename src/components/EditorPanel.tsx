@@ -3,6 +3,43 @@ import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 type Tab = 'article' | 'video';
 type GenerationMode = 'topic' | 'url';
+type VideoPreset = 'youtube_long' | 'youtube_short' | 'instagram_reel';
+
+interface VideoMetadata {
+  url: string;
+  title: string;
+  duration: string;
+  platform: string;
+  platformType: 'youtube' | 'instagram';
+  tags: string[];
+}
+
+const VIDEO_PRESETS: Record<VideoPreset, VideoMetadata> = {
+  youtube_long: {
+    url: 'https://youtube.com/watch?v=react19_deep_dive',
+    title: 'Understanding React 19 Server Components',
+    duration: '12:34',
+    platform: 'YouTube (Long-form)',
+    platformType: 'youtube',
+    tags: ['react19', 'frontend', 'webdev', 'codeplus'],
+  },
+  youtube_short: {
+    url: 'https://youtube.com/shorts/r19-quick-tip-30s',
+    title: '3 Second Trick for React State ⚡',
+    duration: '0:45',
+    platform: 'YouTube Short',
+    platformType: 'youtube',
+    tags: ['shorts', 'react', 'quicktips', 'coding'],
+  },
+  instagram_reel: {
+    url: 'https://instagram.com/reel/C3x9kL2p1M8',
+    title: 'Building AI Apps with Code Plus Academy #reels',
+    duration: '0:58',
+    platform: 'Instagram Reel',
+    platformType: 'instagram',
+    tags: ['reels', 'aistudio', 'coding', 'codeplus'],
+  },
+};
 
 export function EditorPanel() {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -11,9 +48,13 @@ export function EditorPanel() {
   const [inputValue, setInputValue] = useState('');
   const [genStatus, setGenStatus] = useState('');
   const [blocksFilled, setBlocksFilled] = useState(0);
+
+  const [videoPreset, setVideoPreset] = useState<VideoPreset>('youtube_long');
   const [videoInput, setVideoInput] = useState('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [timelineStage, setTimelineStage] = useState(0);
+
+  const currentVideoMeta = VIDEO_PRESETS[videoPreset];
 
   useEffect(() => {
     let timeouts: number[] = [];
@@ -26,7 +67,7 @@ export function EditorPanel() {
         setBlocksFilled(3);
         setTimelineStage(4);
       } else {
-        setVideoInput('https://youtube.com/watch?v=react19');
+        setVideoInput(currentVideoMeta.url);
         setVideoLoaded(true);
       }
       return;
@@ -73,24 +114,24 @@ export function EditorPanel() {
       timeouts.push(window.setTimeout(typeNextChar, 500));
       
     } else if (activeTab === 'video') {
-      const targetUrl = 'https://youtube.com/watch?v=react19';
+      const targetUrl = currentVideoMeta.url;
       let i = 0;
       const typeNextChar = () => {
         if (i < targetUrl.length) {
           setVideoInput(targetUrl.slice(0, i + 1));
           i++;
-          timeouts.push(window.setTimeout(typeNextChar, 30));
+          timeouts.push(window.setTimeout(typeNextChar, 25));
         } else {
           timeouts.push(window.setTimeout(() => {
             setVideoLoaded(true);
-          }, 800));
+          }, 600));
         }
       };
-      timeouts.push(window.setTimeout(typeNextChar, 500));
+      timeouts.push(window.setTimeout(typeNextChar, 400));
     }
 
     return clearTimeouts;
-  }, [activeTab, genMode, prefersReducedMotion]);
+  }, [activeTab, genMode, videoPreset, prefersReducedMotion]);
 
   return (
     <div className="w-full max-w-5xl mx-auto rounded-[12px] overflow-hidden border border-hairline bg-surface-card flex flex-col md:flex-row h-auto md:h-[500px] text-left shadow-sm">
@@ -200,44 +241,87 @@ export function EditorPanel() {
           )}
 
           {activeTab === 'video' && (
-            <div className="flex flex-col gap-6 max-w-2xl">
+            <div className="flex flex-col gap-5 max-w-2xl">
+              <div className="flex items-center gap-2 border-b border-hairline pb-3">
+                <span className="text-[11px] font-semibold tracking-[0.88px] uppercase text-muted mr-1">Link Type:</span>
+                <button 
+                  onClick={() => setVideoPreset('youtube_long')}
+                  className={`text-[11px] font-semibold tracking-[0.88px] uppercase px-[10px] py-1 rounded-pill transition-colors ${videoPreset === 'youtube_long' ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink'}`}
+                >
+                  YouTube (Long-form)
+                </button>
+                <button 
+                  onClick={() => setVideoPreset('youtube_short')}
+                  className={`text-[11px] font-semibold tracking-[0.88px] uppercase px-[10px] py-1 rounded-pill transition-colors ${videoPreset === 'youtube_short' ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink'}`}
+                >
+                  YouTube Shorts
+                </button>
+                <button 
+                  onClick={() => setVideoPreset('instagram_reel')}
+                  className={`text-[11px] font-semibold tracking-[0.88px] uppercase px-[10px] py-1 rounded-pill transition-colors ${videoPreset === 'instagram_reel' ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink'}`}
+                >
+                  Instagram Reel
+                </button>
+              </div>
+
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-semibold tracking-[0.88px] uppercase text-muted">Video Source URL</label>
-                <div className="flex items-center bg-canvas-soft border border-hairline rounded-[8px] px-4 py-3 h-[44px]">
-                  <span className="text-muted mr-3">🔗</span>
-                  <span className="text-ink">{videoInput}</span>
-                  {!videoLoaded && <span className="w-2 h-4 bg-primary ml-1 animate-pulse"></span>}
+                <label className="text-[11px] font-semibold tracking-[0.88px] uppercase text-muted">Paste Video or Reel URL</label>
+                <div className="flex items-center bg-canvas-soft border border-hairline rounded-[8px] px-4 py-3 h-[44px] overflow-hidden">
+                  <span className="text-muted mr-3 shrink-0">🔗</span>
+                  <span className="text-ink truncate">{videoInput}</span>
+                  {!videoLoaded && <span className="w-2 h-4 bg-primary ml-1 shrink-0 animate-pulse"></span>}
                 </div>
               </div>
 
               {videoLoaded && (
                 <div className="animate-fade-in border border-hairline rounded-[12px] overflow-hidden bg-surface-card flex flex-col sm:flex-row shadow-sm">
-                  <div className="w-full sm:w-48 h-32 bg-canvas flex items-center justify-center shrink-0 border-r border-hairline relative">
+                  <div className="w-full sm:w-48 h-32 bg-canvas flex items-center justify-center shrink-0 border-b sm:border-b-0 sm:border-r border-hairline relative">
                     <div className="w-12 h-12 rounded-full bg-surface-card shadow-sm flex items-center justify-center border border-hairline">
                       <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-ink border-b-[6px] border-b-transparent ml-1"></div>
                     </div>
                     <div className="absolute bottom-2 right-2 bg-ink text-canvas text-[11px] font-mono px-1.5 py-0.5 rounded-[4px]">
-                      12:34
+                      {currentVideoMeta.duration}
+                    </div>
+                    <div className="absolute top-2 left-2">
+                      {currentVideoMeta.platformType === 'instagram' ? (
+                        <span className="bg-gradient-to-r from-purple-600 to-pink-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
+                          Reel
+                        </span>
+                      ) : (
+                        <span className="bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
+                          YouTube
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="p-4 flex flex-col justify-between flex-1">
                     <div>
-                      <h3 className="font-sans text-[16px] font-medium text-ink mb-1">Understanding React 19 Server Components</h3>
-                      <p className="font-sans text-[14px] text-muted">Code Plus Academy</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[11px] font-semibold text-primary uppercase tracking-wider">{currentVideoMeta.platform}</span>
+                        <span className="text-muted">•</span>
+                        <span className="text-[11px] text-muted font-mono">{currentVideoMeta.duration}</span>
+                      </div>
+                      <h3 className="font-sans text-[15px] font-medium text-ink mb-1 line-clamp-2">{currentVideoMeta.title}</h3>
+                      <p className="font-sans text-[13px] text-muted">Code Plus Academy</p>
                     </div>
-                    <div className="flex gap-2 mt-4">
-                      <span className="text-[11px] font-semibold tracking-[0.88px] uppercase bg-surface-strong text-ink px-[10px] py-1 rounded-pill">react</span>
-                      <span className="text-[11px] font-semibold tracking-[0.88px] uppercase bg-surface-strong text-ink px-[10px] py-1 rounded-pill">frontend</span>
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {currentVideoMeta.tags.map((tag, idx) => (
+                        <span key={idx} className="text-[10px] font-semibold tracking-[0.88px] uppercase bg-surface-strong text-ink px-[8px] py-0.5 rounded-pill">
+                          #{tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
               )}
               
               {videoLoaded && (
-                <div className="animate-fade-in mt-4 flex items-center gap-3">
-                  <div className="text-[11px] font-semibold tracking-[0.88px] uppercase text-muted">Status:</div>
-                  <div className="text-[11px] font-semibold tracking-[0.88px] uppercase px-[10px] py-1 rounded-pill text-semantic-success bg-semantic-success/10">
-                    Ready to Publish
+                <div className="animate-fade-in flex items-center justify-between gap-3 pt-1 border-t border-hairline">
+                  <div className="flex items-center gap-2">
+                    <div className="text-[11px] font-semibold tracking-[0.88px] uppercase text-muted">Status:</div>
+                    <div className="text-[11px] font-semibold tracking-[0.88px] uppercase px-[10px] py-1 rounded-pill text-semantic-success bg-semantic-success/10">
+                      Auto-Fetched Metadata • Ready to Publish
+                    </div>
                   </div>
                 </div>
               )}
