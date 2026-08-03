@@ -1,0 +1,8 @@
+{
+  "name": "Studio Landing Page",
+  "description": "Marketing landing page for Studio by Code Pulse Academy",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
