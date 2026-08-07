@@ -1,17 +1,15 @@
 [build]
-  command = "pip install -r requirements.txt"
+  command = "python build.py"
   publish = "public"
-  functions = "netlify/functions"
 
 [build.environment]
   PYTHON_VERSION = "3.11"
 
 [functions]
-  included_files = ["app.py", "generator.py", "cloud_uploader.py", "templates/**", "TEMPLATE_GUIDE.md"]
+  directory = "netlify/functions"
 
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/app"
   status = 200
   force = true
-
