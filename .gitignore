@@ -15,8 +15,9 @@ venv.bak/
 .env.local
 .env.*
 
-# Generated PDFs & Batch Outputs
+# Generated PDFs, HTMLs & Batch Outputs
 output/*.pdf
+output/*.html
 output/*.zip
 !output/.gitkeep
 
