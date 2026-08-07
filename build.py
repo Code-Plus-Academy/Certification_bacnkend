@@ -12,9 +12,10 @@ print("[1/3] Installing dependencies into netlify/functions/...")
 req_file = os.path.abspath("requirements.txt")
 subprocess.run(["pip", "install", "-r", req_file, "-t", functions_dir], check=True)
 
-# 2. Copy root Python modules into netlify/functions
+# 2. Copy root Python modules into netlify/functions (app.py -> main_app.py to preserve handler)
 print("[2/3] Copying Python modules to netlify/functions/...")
-for fname in ["app.py", "generator.py", "cloud_uploader.py"]:
+shutil.copy("app.py", os.path.join(functions_dir, "main_app.py"))
+for fname in ["generator.py", "cloud_uploader.py"]:
     if os.path.exists(fname):
         shutil.copy(fname, os.path.join(functions_dir, fname))
 
