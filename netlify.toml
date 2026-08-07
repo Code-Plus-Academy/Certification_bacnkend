@@ -7,9 +7,11 @@
   PYTHON_VERSION = "3.11"
 
 [functions]
-  included_files = ["templates/**", "TEMPLATE_GUIDE.md"]
+  included_files = ["app.py", "generator.py", "cloud_uploader.py", "templates/**", "TEMPLATE_GUIDE.md"]
 
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/app"
   status = 200
+  force = true
+

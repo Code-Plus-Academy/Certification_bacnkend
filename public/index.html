@@ -2,10 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=/">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDF Automation Studio</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0A0D14;
+      color: #F1F5F9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #121824;
+      border: 1px solid #232D3F;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      max-width: 480px;
+    }
+    h1 {
+      color: #1EC8F0;
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    p {
+      color: #94A3B8;
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    a.btn {
+      display: inline-block;
+      background: linear-gradient(90deg, #2F6DF6, #8B3DF5);
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
-  <p>Redirecting to <a href="/">PDF Automation Studio</a>...</p>
+  <div class="card">
+    <h1>PDF Automation Studio</h1>
+    <p>Application is loading. Click below if you are not redirected automatically.</p>
+    <a href="/?from_fallback=1" class="btn">Launch Dashboard</a>
+  </div>
 </body>
 </html>
