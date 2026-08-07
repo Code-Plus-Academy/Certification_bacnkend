@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*
+
+# Generated PDFs & Batch Outputs
+output/*.pdf
+output/*.zip
+!output/.gitkeep
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
