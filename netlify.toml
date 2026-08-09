@@ -1,15 +1,14 @@
 [build]
-  base = "pdf_automation"
-  command = "pip install -r requirements.txt"
-  publish = "public"
-  functions = "netlify/functions"
+  command = "cd pdf_automation && pip install -r requirements.txt"
+  publish = "pdf_automation/public"
+  functions = "pdf_automation/netlify/functions"
 
 [build.environment]
   PYTHON_VERSION = "3.11"
   SECRETS_SCAN_ENABLED = "false"
 
 [functions]
-  included_files = ["templates/**", "TEMPLATE_GUIDE.md"]
+  included_files = ["pdf_automation/templates/**", "pdf_automation/TEMPLATE_GUIDE.md"]
 
 [[redirects]]
   from = "/*"
