@@ -1,28 +1,34 @@
-# 📘 Certification Backend & PDF Automation Studio — Complete API Documentation
+# 📜 PolyCert — Enterprise HTML Templating & PDF Generation Engine
+## Complete API & Integration Documentation
 
-Comprehensive API documentation for the **PDF Automation & Templating System**. This backend enables dynamic HTML Jinja2 template management, digital signature rendering, single and batch PDF generation, and automated cloud storage uploads to **Supabase**, **Cloudinary**, and **AWS S3**.
-
----
-
-## 📍 Base URLs
-
-- **Production API (Render)**: `https://certification-bacnkend.onrender.com`
-- **Netlify Serverless**: `https://certification-cpa.netlify.app`
-- **Local Development**: `http://127.0.0.1:5000`
+Welcome to the official integration guide for **PolyCert**, an enterprise-grade automated PDF generation and HTML templating engine. **PolyCert** leverages **Playwright Chromium** to render dynamic HTML/CSS templates into pixel-perfect PDF documents, with automatic cloud storage uploads to **Supabase Storage**, **Cloudinary**, and **AWS S3**.
 
 ---
 
-## 🔑 Authentication
+## 📍 Service Endpoints & Base URLs
 
-All `/api/` endpoints are protected by an **API Access Key**. You must supply your key using any of the following 3 methods:
+| Environment | Base URL | Status / Notes |
+| :--- | :--- | :--- |
+| **Production API (Render)** | `https://certification-bacnkend.onrender.com` | High-availability Playwright Chromium backend |
+| **Netlify Serverless** | `https://certification-cpa.netlify.app` | Serverless WSGI endpoint |
+| **Local Development** | `http://127.0.0.1:5000` | Local Flask development server |
 
-| Method | Type | Format | Example |
+---
+
+## 🔒 1. Security & Authentication
+
+PolyCert uses two distinct authentication layers:
+
+### A. REST API Key Authentication (`/api/*`)
+All programmatic API endpoints starting with `/api/` require a valid **Server Access Key**. You can pass your key using any of the following 3 header/parameter formats:
+
+| Method | Type | Header / Parameter | Example |
 | :--- | :--- | :--- | :--- |
-| **HTTP Header (Recommended)** | `X-API-Key` | Plain String | `X-API-Key: cpa_sk_89f2a71e4b9d0831` |
+| **HTTP Header (Recommended)** | `X-API-Key` | Header | `X-API-Key: cpa_sk_89f2a71e4b9d0831` |
 | **Authorization Header** | `Authorization` | Bearer Token | `Authorization: Bearer cpa_sk_89f2a71e4b9d0831` |
 | **Query Parameter** | `api_key` | URL Parameter | `?api_key=cpa_sk_89f2a71e4b9d0831` |
 
-> ⚠️ **Unauthorized Response (401)**: If a request lacks a valid key, the API returns:
+> ⚠️ **Unauthorized API Response (401)**:
 > ```json
 > {
 >   "status": "error",
@@ -33,35 +39,37 @@ All `/api/` endpoints are protected by an **API Access Key**. You must supply yo
 
 ---
 
-### 🔒 Frontend Web Dashboard Authentication (`/login`)
-The PolyCert Studio Web Dashboard (`/`) is protected by **Session Authentication**:
-- **Login Redirect**: Accessing any dashboard route (`/`, `/?tab=templates`) without an active session automatically redirects to `/login`.
-- **Authentication Key**: Enter your **Server Access Key** (`API_ACCESS_KEY=cpa_sk_89f2a71e4b9d0831`) in the dark-mode login card to authenticate.
-- **Logout**: Click **🔒 Logout** in the navigation header or navigate to `/logout` to clear your active session.
+### B. Web Studio Dashboard Authentication (`/login`)
+The interactive Web Dashboard (`http://127.0.0.1:5000/`) is protected by **Flask Session Authentication**:
+- **Automatic Redirect**: Accessing any dashboard URL without an active session redirects to `/login`.
+- **Admin Password**: Enter your `API_ACCESS_KEY` (`cpa_sk_89f2a71e4b9d0831`) in the login form to unlock full dashboard access.
+- **Logout**: Click **🔒 Logout** in the navigation header or request `/logout` to clear your active session.
 
 ---
 
-## 📑 Quick Reference Table
+## 📑 2. API Endpoints Quick Reference
 
 | Category | HTTP Method | Endpoint | Description |
 | :--- | :--- | :--- | :--- |
+| **Auth** | `POST` | `/login` | Authenticate web session using Access Key |
+| **Auth** | `GET` | `/logout` | End web session and redirect to `/login` |
 | **Templates** | `GET` | `/api/templates` | List all installed templates & Jinja2 variables |
-| **Templates** | `GET` | `/api/templates/<filename>` | Get raw HTML & detected placeholders for a template |
-| **Templates** | `POST` / `PUT` | `/api/templates` | Create or update a custom HTML template via API |
-| **Templates** | `DELETE` | `/api/templates/<filename>` | Delete a custom HTML template |
-| **Generation** | `POST` | `/api/generate-certificate-info` | Single PDF generation + JSON metadata + Cloud storage links |
-| **Generation** | `POST` | `/api/generate-batch-info` | Bulk PDF generation returning JSON array with cloud URLs |
-| **Generation** | `POST` | `/api/generate-batch-pdf` | Bulk PDF generation returning a `.zip` archive download |
+| **Templates** | `GET` | `/api/templates/<filename>` | Retrieve raw HTML and variables for a template |
+| **Templates** | `POST` | `/api/templates` | Create or update a custom HTML template |
+| **Templates** | `DELETE` | `/api/templates/<filename>` | Delete a custom template |
+| **Generation** | `POST` | `/api/generate-certificate-info` | Generate single PDF + JSON metadata + Cloud storage links |
+| **Generation** | `POST` | `/api/generate-batch-info` | Generate bulk PDFs returning JSON array with cloud URLs |
+| **Generation** | `POST` | `/api/generate-batch-pdf` | Generate bulk PDFs returning a `.zip` archive download |
 | **Download** | `GET` | `/output/<filename>` | Download a generated PDF file from server |
 
 ---
 
-## 📂 1. Template Management Endpoints
+## 📂 3. Template Management API
 
 ### `GET /api/templates`
-Returns a list of all installed templates along with their auto-detected Jinja2 `{{ variable }}` placeholders.
+Retrieves a list of all installed templates along with their auto-detected Jinja2 `{{ variable }}` placeholders.
 
-#### Request Header:
+#### Request Headers:
 ```http
 X-API-Key: cpa_sk_89f2a71e4b9d0831
 ```
@@ -72,24 +80,22 @@ X-API-Key: cpa_sk_89f2a71e4b9d0831
   "status": "success",
   "templates": [
     {
-      "filename": "certificate.html",
+      "filename": "certificate_of_compleation.html",
       "is_custom": false,
-      "name": "Certificate",
-      "path": "/opt/render/project/src/templates/certificate.html",
+      "name": "Certificate Of Compleation",
+      "path": "/opt/render/project/src/templates/certificate_of_compleation.html",
       "variables": [
         "date",
-        "doc_tag",
         "duration",
-        "eyebrow",
-        "holding_company",
         "name",
         "organization_name",
+        "program_lead",
+        "program_lead_org",
+        "program_lead_title",
         "role",
         "serial_no",
         "signatory",
-        "signatory_role",
-        "signature_image",
-        "signature_text"
+        "signatory_role"
       ]
     },
     {
@@ -118,11 +124,11 @@ X-API-Key: cpa_sk_89f2a71e4b9d0831
 ---
 
 ### `GET /api/templates/<filename>`
-Returns the raw HTML content and variables for a specific template.
+Retrieves raw HTML content and Jinja2 variables for a specific template.
 
 #### Request Example:
 ```http
-GET /api/templates/certificate.html
+GET /api/templates/certificate_of_compleation.html
 X-API-Key: cpa_sk_89f2a71e4b9d0831
 ```
 
@@ -130,8 +136,8 @@ X-API-Key: cpa_sk_89f2a71e4b9d0831
 ```json
 {
   "status": "success",
-  "filename": "certificate.html",
-  "variables": ["date", "name", "role", "serial_no", "signature_text"],
+  "filename": "certificate_of_compleation.html",
+  "variables": ["date", "duration", "name", "organization_name", "role", "serial_no"],
   "html_content": "<!DOCTYPE html><html>..."
 }
 ```
@@ -139,13 +145,13 @@ X-API-Key: cpa_sk_89f2a71e4b9d0831
 ---
 
 ### `POST /api/templates`
-Creates or updates a custom HTML template. The system automatically validates Jinja2 syntax and extracts variable placeholders.
+Creates or updates a custom HTML Jinja2 template.
 
 #### Request Body (JSON):
 ```json
 {
-  "name": "internship_letter",
-  "html": "<html><body><h1>Internship Certificate</h1><p>Awarded to {{ name }} for completing {{ role }}. Signed by {{ signatory }}.</p></body></html>"
+  "name": "internship_certificate",
+  "html": "<html><body><h1>Internship Certificate</h1><p>Awarded to {{ name }} for completing {{ role }}.</p></body></html>"
 }
 ```
 
@@ -153,13 +159,9 @@ Creates or updates a custom HTML template. The system automatically validates Ji
 ```json
 {
   "status": "success",
-  "message": "Template 'internship_letter.html' saved successfully",
-  "filename": "internship_letter.html",
-  "variables": [
-    "name",
-    "role",
-    "signatory"
-  ]
+  "message": "Template 'internship_certificate.html' saved successfully",
+  "filename": "internship_certificate.html",
+  "variables": ["name", "role"]
 }
 ```
 
@@ -170,7 +172,7 @@ Deletes a custom HTML template.
 
 #### Request Example:
 ```http
-DELETE /api/templates/internship_letter.html
+DELETE /api/templates/internship_certificate.html
 X-API-Key: cpa_sk_89f2a71e4b9d0831
 ```
 
@@ -178,16 +180,16 @@ X-API-Key: cpa_sk_89f2a71e4b9d0831
 ```json
 {
   "status": "success",
-  "message": "Template 'internship_letter.html' deleted successfully"
+  "message": "Template 'internship_certificate.html' deleted successfully"
 }
 ```
 
 ---
 
-## 🖨️ 2. PDF Generation Endpoints
+## 🖨️ 4. PDF Generation Endpoints
 
 ### `POST /api/generate-certificate-info` (Primary Single Document API)
-Generates a PDF document, returns detailed JSON metadata, and automatically uploads the generated file to your enabled cloud storage providers (**Supabase**, **Cloudinary**, **AWS S3**).
+Renders a PDF using **Playwright Chromium**, returns structured JSON metadata, and automatically uploads the generated file to **Supabase Storage** CDN.
 
 #### Request Headers:
 ```http
@@ -198,17 +200,20 @@ X-API-Key: cpa_sk_89f2a71e4b9d0831
 #### Request Body Payload (JSON):
 ```json
 {
-  "template": "certificate.html",
+  "template": "certificate_of_compleation.html",
   "data": {
     "name": "Sayaji Kapse",
-    "role": "Lead Software & AI Engineer",
+    "role": "Senior Software Engineer & AI Specialist",
     "organization_name": "Code Plus Academy",
     "duration": "120 Hours",
-    "serial_no": "CERT-2026-SK-8891",
-    "date": "August 09, 2026",
+    "serial_no": "POLYCERT-2026-SK-001",
+    "date": "August 10, 2026",
     "signatory": "Dr. Alex Vance",
     "signatory_role": "Director of Engineering",
-    "signature_text": "Dr. Alex Vance"
+    "signature_text": "Dr. Alex Vance",
+    "program_lead": "Dr. Alex Vance",
+    "program_lead_title": "Director of Engineering",
+    "program_lead_org": "Code Plus Academy"
   }
 }
 ```
@@ -217,77 +222,66 @@ X-API-Key: cpa_sk_89f2a71e4b9d0831
 ```json
 {
   "status": "success",
-  "request_id": "req_a1b2c3d4e5f67",
-  "certificate_serial": "CERT-2026-SK-8891",
+  "request_id": "req_77f641f6-6059",
+  "certificate_serial": "POLYCERT-2026-SK-001",
   "recipient_name": "Sayaji Kapse",
-  "role_title": "Lead Software & AI Engineer",
-  "template_used": "certificate.html",
-  "generated_at": "2026-08-09T17:19:17.522211",
+  "role_title": "Senior Software Engineer & AI Specialist",
+  "template_used": "certificate_of_compleation.html",
+  "generated_at": "2026-08-10T00:20:00.123456",
   "file_info": {
-    "filename": "cert_CERT-2026-SK-8891_Sayaji_Kapse.pdf",
-    "size_bytes": 45917,
-    "local_download_url": "https://certification-bacnkend.onrender.com/output/cert_CERT-2026-SK-8891_Sayaji_Kapse.pdf"
+    "filename": "cert_POLYCERT-2026-SK-001_Sayaji_Kapse.pdf",
+    "size_bytes": 612073,
+    "local_download_url": "https://certification-bacnkend.onrender.com/output/cert_POLYCERT-2026-SK-001_Sayaji_Kapse.pdf"
   },
   "cloud_storage_urls": {
-    "local_download_url": "https://certification-bacnkend.onrender.com/output/cert_CERT-2026-SK-8891_Sayaji_Kapse.pdf",
-    "supabase_url": "https://hbgclryfeuixuynnilqa.supabase.co/storage/v1/object/public/certificates/certificates/2026/08/cert_CERT-2026-SK-8891_Sayaji_Kapse.pdf"
+    "local_download_url": "https://certification-bacnkend.onrender.com/output/cert_POLYCERT-2026-SK-001_Sayaji_Kapse.pdf",
+    "supabase_url": "https://hbgclryfeuixuynnilqa.supabase.co/storage/v1/object/public/certificates/certificates/2026/08/cert_POLYCERT-2026-SK-001_Sayaji_Kapse.pdf"
   }
 }
 ```
 
 ---
 
-### ✍️ Digital Signature Features
+### ✍️ Digital Signature Modes
+PolyCert supports 3 digital signature formats inside the `data` object:
 
-You can provide signatures in three ways inside the `data` payload:
+1. **Stylized Cursive Signature (`signature_text`)**:
+   Renders a handwritten signature using Google Font *Dancing Script*:
+   ```json
+   { "signature_text": "Dr. Alex Vance" }
+   ```
 
-#### 1. Stylized Cursive Signature (`signature_text`)
-Pass `signature_text` to automatically render an elegant handwritten cursive script signature:
-```json
-{
-  "signature_text": "Dr. Alex Vance",
-  "signatory": "Dr. Alex Vance",
-  "signatory_role": "Director of Engineering"
-}
-```
+2. **Image URL (`signature_image`)**:
+   Pass a remote PNG/SVG image URL:
+   ```json
+   { "signature_image": "https://yourdomain.com/assets/signature.png" }
+   ```
 
-#### 2. Signature Image URL (`signature_image`)
-Pass an image URL or relative server path:
-```json
-{
-  "signature_image": "https://yourdomain.com/assets/signature.png",
-  "signatory": "Dr. Alex Vance"
-}
-```
-
-#### 3. Base64 Data URI (`signature_image`)
-Pass inline base64 image data:
-```json
-{
-  "signature_image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
-  "signatory": "Dr. Alex Vance"
-}
-```
+3. **Base64 Data URI (`signature_image`)**:
+   Pass inline base64 image data:
+   ```json
+   { "signature_image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..." }
+   ```
 
 ---
 
-### `POST /api/generate-batch-info` (Bulk JSON Generation)
-Generates multiple PDFs for an array of records and returns a JSON list of all generated documents with individual download and cloud storage links.
+### `POST /api/generate-batch-info` (Bulk Generation API)
+Generates multiple PDFs from an array of data objects and returns a JSON list of all generated documents with individual cloud storage URLs.
 
 #### Request Body Payload:
 ```json
 {
-  "template": "certificate.html",
+  "template": "certificate_of_compleation.html",
   "data_list": [
     {
       "name": "Jane Doe",
-      "role": "Full-Stack Developer",
-      "serial_no": "CPA-2026-001"
+      "role": "Full-Stack Engineer",
+      "serial_no": "POLYCERT-BATCH-001"
     },
     {
       "name": "Alex Mercer",
       "role": "DevOps Architect",
-      "serial_no": "CPA-2026-002"
+      "serial_no": "POLYCERT-BATCH-002"
     }
   ]
 }
@@ -299,34 +293,19 @@ Generates multiple PDFs for an array of records and returns a JSON list of all g
   "status": "success",
   "batch_id": "batch_98f7e6d5c4b3a",
   "total_generated": 2,
-  "generated_at": "2026-08-09T17:20:00.123456",
   "certificates": [
     {
-      "request_id": "req_11111111",
-      "certificate_serial": "CPA-2026-001",
+      "certificate_serial": "POLYCERT-BATCH-001",
       "recipient_name": "Jane Doe",
-      "role_title": "Full-Stack Developer",
-      "file_info": {
-        "filename": "batch_CPA-2026-001_Jane_Doe.pdf",
-        "size_bytes": 44810,
-        "local_download_url": "https://certification-bacnkend.onrender.com/output/batch_CPA-2026-001_Jane_Doe.pdf"
-      },
       "cloud_storage_urls": {
-        "supabase_url": "https://hbgclryfeuixuynnilqa.supabase.co/storage/v1/object/public/certificates/certificates/2026/08/batch_CPA-2026-001_Jane_Doe.pdf"
+        "supabase_url": "https://hbgclryfeuixuynnilqa.supabase.co/storage/v1/object/public/certificates/certificates/2026/08/batch_POLYCERT-BATCH-001_Jane_Doe.pdf"
       }
     },
     {
-      "request_id": "req_22222222",
-      "certificate_serial": "CPA-2026-002",
+      "certificate_serial": "POLYCERT-BATCH-002",
       "recipient_name": "Alex Mercer",
-      "role_title": "DevOps Architect",
-      "file_info": {
-        "filename": "batch_CPA-2026-002_Alex_Mercer.pdf",
-        "size_bytes": 45120,
-        "local_download_url": "https://certification-bacnkend.onrender.com/output/batch_CPA-2026-002_Alex_Mercer.pdf"
-      },
       "cloud_storage_urls": {
-        "supabase_url": "https://hbgclryfeuixuynnilqa.supabase.co/storage/v1/object/public/certificates/certificates/2026/08/batch_CPA-2026-002_Alex_Mercer.pdf"
+        "supabase_url": "https://hbgclryfeuixuynnilqa.supabase.co/storage/v1/object/public/certificates/certificates/2026/08/batch_POLYCERT-BATCH-002_Alex_Mercer.pdf"
       }
     }
   ]
@@ -335,8 +314,8 @@ Generates multiple PDFs for an array of records and returns a JSON list of all g
 
 ---
 
-### `POST /api/generate-batch-pdf` (ZIP Archive Download)
-Generates multiple PDFs and returns a single `.zip` file containing all generated PDF files as an attachment.
+### `POST /api/generate-batch-pdf` (ZIP File Download)
+Generates multiple PDFs and returns a single downloadable `.zip` archive containing all generated PDF files.
 
 #### Request Body Payload:
 ```json
@@ -351,11 +330,11 @@ Generates multiple PDFs and returns a single `.zip` file containing all generate
 
 #### Response:
 - **Content-Type**: `application/zip`
-- **File Download**: `Batch_offer_letter_20260809_172000.zip`
+- **File Download**: `Batch_offer_letter_20260810_002000.zip`
 
 ---
 
-## 💻 3. Integration Code Examples
+## 💻 5. Integration Code Examples
 
 ### 1. cURL (Command Line)
 ```bash
@@ -363,11 +342,11 @@ curl -X POST https://certification-bacnkend.onrender.com/api/generate-certificat
   -H "X-API-Key: cpa_sk_89f2a71e4b9d0831" \
   -H "Content-Type: application/json" \
   -d '{
-    "template": "certificate.html",
+    "template": "certificate_of_compleation.html",
     "data": {
-      "name": "Jane Doe",
-      "role": "Full-Stack Engineer",
-      "serial_no": "CERT-2026-101",
+      "name": "Sayaji Kapse",
+      "role": "Senior Software Engineer & AI Specialist",
+      "serial_no": "POLYCERT-CURL-01",
       "signature_text": "Dr. Alex Vance"
     }
   }'
@@ -380,7 +359,7 @@ curl -X POST https://certification-bacnkend.onrender.com/api/generate-certificat
 const BASE_URL = "https://certification-bacnkend.onrender.com";
 const API_KEY = "cpa_sk_89f2a71e4b9d0831";
 
-async function generateCertificate(candidateData) {
+async function generatePolyCert(studentData) {
   const response = await fetch(`${BASE_URL}/api/generate-certificate-info`, {
     method: "POST",
     headers: {
@@ -388,8 +367,8 @@ async function generateCertificate(candidateData) {
       "X-API-Key": API_KEY
     },
     body: JSON.stringify({
-      template: "certificate.html",
-      data: candidateData
+      template: "certificate_of_compleation.html",
+      data: studentData
     })
   });
 
@@ -397,66 +376,124 @@ async function generateCertificate(candidateData) {
   if (response.ok) {
     console.log("Certificate Generated Successfully!");
     console.log("Supabase CDN URL:", result.cloud_storage_urls.supabase_url);
-    return result;
+    return result.cloud_storage_urls.supabase_url;
   } else {
-    console.error("API Error:", result.error);
+    console.error("PolyCert Error:", result.error);
   }
 }
 
-// Call function
-generateCertificate({
+// Call service
+generatePolyCert({
   name: "Sayaji Kapse",
-  role: "Lead Software Engineer",
+  role: "Senior Software Engineer & AI Specialist",
   signature_text: "Dr. Alex Vance",
-  serial_no: "CERT-2026-99"
+  serial_no: "POLYCERT-JS-01"
 });
 ```
 
 ---
 
-### 3. Python (`requests`)
-```python
-import requests
+### 3. React / Next.js Frontend Integration
+```tsx
+import React, { useState } from "react";
 
-BASE_URL = "https://certification-bacnkend.onrender.com"
-API_KEY = "cpa_sk_89f2a71e4b9d0831"
+export default function CertificateGenerator() {
+  const [loading, setLoading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-headers = {
-    "X-API-Key": API_KEY,
-    "Content-Type": "application/json"
-}
+  const handleGenerate = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("https://certification-bacnkend.onrender.com/api/generate-certificate-info", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": "cpa_sk_89f2a71e4b9d0831"
+        },
+        body: JSON.stringify({
+          template: "certificate_of_compleation.html",
+          data: {
+            name: "Sayaji Kapse",
+            role: "Senior Full-Stack & AI Engineer",
+            serial_no: `POLYCERT-${Date.now()}`
+          }
+        })
+      });
 
-payload = {
-    "template": "certificate.html",
-    "data": {
-        "name": "Sayaji Kapse",
-        "role": "AI Engineer",
-        "signature_text": "Dr. Alex Vance",
-        "serial_no": "CPA-2026-PY-01"
+      const data = await res.json();
+      if (res.ok) {
+        setPdfUrl(data.cloud_storage_urls.supabase_url);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <button onClick={handleGenerate} disabled={loading}>
+        {loading ? "Generating PolyCert PDF..." : "Generate Certificate"}
+      </button>
+
+      {pdfUrl && (
+        <div style={{ marginTop: "20px" }}>
+          <p>Certificate Ready!</p>
+          <a href={pdfUrl} target="_blank" rel="noreferrer">
+            View / Download PDF (Supabase CDN)
+          </a>
+        </div>
+      )}
+    </div>
+  );
 }
-
-response = requests.post(f"{BASE_URL}/api/generate-certificate-info", headers=headers, json=payload)
-data = response.json()
-
-print("Status Code:", response.status_code)
-print("Supabase CDN Link:", data["cloud_storage_urls"]["supabase_url"])
 ```
 
 ---
 
-### 4. PHP (cURL)
+### 4. Python (`requests`)
+```python
+import requests
+
+url = "https://certification-bacnkend.onrender.com/api/generate-certificate-info"
+headers = {
+    "X-API-Key": "cpa_sk_89f2a71e4b9d0831",
+    "Content-Type": "application/json"
+}
+
+payload = {
+    "template": "certificate_of_compleation.html",
+    "data": {
+        "name": "Sayaji Kapse",
+        "role": "Senior Software Engineer & AI Specialist",
+        "signature_text": "Dr. Alex Vance",
+        "serial_no": "POLYCERT-PY-01"
+    }
+}
+
+response = requests.post(url, headers=headers, json=payload)
+data = response.json()
+
+print("Status Code:", response.status_code)
+print("Supabase CDN URL:", data["cloud_storage_urls"]["supabase_url"])
+```
+
+---
+
+### 5. PHP (cURL)
 ```php
 <?php
 $url = "https://certification-bacnkend.onrender.com/api/generate-certificate-info";
 $apiKey = "cpa_sk_89f2a71e4b9d0831";
 
 $payload = [
-    "template" => "certificate.html",
+    "template" => "certificate_of_compleation.html",
     "data" => [
         "name" => "Sayaji Kapse",
-        "role" => "Lead Engineer",
-        "signature_text" => "Dr. Alex Vance"
+        "role" => "Senior Software Engineer & AI Specialist",
+        "signature_text" => "Dr. Alex Vance",
+        "serial_no" => "POLYCERT-PHP-01"
     ]
 ];
 
@@ -479,15 +516,15 @@ echo "Supabase Link: " . $result['cloud_storage_urls']['supabase_url'];
 
 ---
 
-## ⚙️ 4. Environment Variables Reference
+## ⚙️ 6. Environment Variables Reference
 
-Configure these variables in your `.env` or host environment (Render / Netlify):
+Configure these variables in your `.env` file or host environment (Render / Netlify):
 
 ```env
-# 🔑 API Authentication
+# 🔑 API & Admin Authentication
 API_ACCESS_KEY=cpa_sk_89f2a71e4b9d0831
 
-# ⚡ Supabase Storage
+# ⚡ Supabase Storage Ingestion
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_SECRET_KEY=your_supabase_secret_key
 SUPABASE_BUCKET=certificates
