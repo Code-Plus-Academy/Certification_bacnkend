@@ -194,34 +194,53 @@ LOGIN_HTML = """
 """
 
 @app.before_request
-def authenticate_requests():
+def handle_authentication():
     expected_key = os.environ.get("API_ACCESS_KEY") or os.environ.get("SERVER_API_KEY")
-    if not expected_key:
+
+    # 1. Allow login page, static assets, and public output downloads freely
+    public_paths = ['/login', '/logout', '/static/', '/output/']
+    if any(request.path.startswith(p) for p in public_paths) or request.endpoint == 'static':
         return None
 
-    # 1. API Route Authentication
-    if request.path.startswith('/api/'):
+    # 2. Determine if incoming request is an API request or Browser request
+    is_api_request = (
+        request.path.startswith('/api/') or
+        'X-API-Key' in request.headers or
+        'x-api-key' in request.headers or
+        'Authorization' in request.headers or
+        request.headers.get('Accept') == 'application/json' or
+        request.is_json
+    )
+
+    if is_api_request:
+        if not expected_key:
+            return None  # No API key configured -> allow
+
+        # 🔑 API Authentication Logic
+        auth_header = request.headers.get('Authorization', '')
+        bearer_token = auth_header.replace('Bearer ', '').strip() if auth_header.startswith('Bearer ') else ''
+
         provided_key = (
             request.headers.get('X-API-Key') or 
             request.headers.get('x-api-key') or 
+            bearer_token or 
             request.args.get('api_key')
         )
-        auth_header = request.headers.get('Authorization', '')
-        if auth_header.startswith('Bearer '):
-            provided_key = auth_header.split('Bearer ', 1)[1].strip()
-            
-        if not provided_key or provided_key != expected_key:
-            return jsonify({
-                "status": "error",
-                "error": "Unauthorized: Invalid or missing API access key",
-                "message": "Please provide your server access key via 'X-API-Key' header or 'Authorization: Bearer <key>'"
-            }), 401
 
-    # 2. Frontend Web Dashboard Session Authentication
-    public_paths = ['/login', '/logout', '/static/', '/output/']
-    if not any(request.path.startswith(p) for p in public_paths):
-        if not session.get('authenticated'):
-            return redirect(url_for('login', next=request.url))
+        if provided_key == expected_key:
+            return None  # ✅ Valid Key -> Process API request
+
+        # ❌ Invalid / Missing API Key -> Return 401 JSON (No 302 Redirect!)
+        return jsonify({
+            "status": "error",
+            "error": "Unauthorized: Invalid or missing API access key",
+            "message": "Please provide your server access key via 'X-API-Key' header or 'Authorization: Bearer <key>'"
+        }), 401
+
+    # 3. 🌐 Browser / Web Dashboard Logic
+    if expected_key and not session.get('authenticated'):
+        # Redirect browser users to login page
+        return redirect(url_for('login', next=request.url))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
