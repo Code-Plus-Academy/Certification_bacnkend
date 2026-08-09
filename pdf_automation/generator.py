@@ -242,12 +242,29 @@ def convert_html_to_pdf(html_content, output_filename, temp_html_path=None):
     if not pdf_generated:
         try:
             from xhtml2pdf import pisa
+            clean_html = html_content
+            css_var_map = {
+                "var(--ink)": "#12141C",
+                "var(--muted)": "#5B6270",
+                "var(--faint)": "#9198A6",
+                "var(--line)": "#E7E9EE",
+                "var(--cyan)": "#1EC8F0",
+                "var(--blue)": "#2F6DF6",
+                "var(--violet)": "#8B3DF5",
+                "var(--magenta)": "#D537D6",
+                "var(--paper)": "#FFFFFF"
+            }
+            for var_key, hex_val in css_var_map.items():
+                clean_html = clean_html.replace(var_key, hex_val)
+
             with open(output_filename, "wb") as pdf_file:
-                pisa_status = pisa.CreatePDF(html_content, dest=pdf_file)
+                pisa_status = pisa.CreatePDF(clean_html, dest=pdf_file)
             if not pisa_status.err and os.path.exists(output_filename):
                 print(f"[OK] PDF successfully generated using xhtml2pdf: {output_filename}")
                 pdf_generated = True
                 return output_filename
+            else:
+                error_messages.append(f"xhtml2pdf error: status_err={pisa_status.err}")
         except Exception as e:
             error_messages.append(f"xhtml2pdf error: {str(e)}")
 
