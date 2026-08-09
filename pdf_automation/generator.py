@@ -210,7 +210,16 @@ def convert_html_to_pdf(html_content, output_filename, temp_html_path=None):
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"])
+            try:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"])
+            except Exception as launch_err:
+                print(f"[INFO] Playwright Chromium missing on server ({launch_err}). Installing Chromium binaries...")
+                try:
+                    subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True, timeout=180)
+                    browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"])
+                except Exception as inst_err:
+                    raise RuntimeError(f"Playwright auto-install failed: {inst_err}")
+
             page = browser.new_page()
             page.set_content(html_content, wait_until="load")
             page.pdf(path=output_filename, print_background=True, format="A4", landscape=True, margin={"top": "0mm", "right": "0mm", "bottom": "0mm", "left": "0mm"})
