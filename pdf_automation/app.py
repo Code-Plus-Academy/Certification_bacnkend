@@ -80,7 +80,7 @@ INDEX_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Automation Studio — Dynamic HTML Templates & PDF Generator</title>
+    <title>PolyCert Studio — Enterprise HTML Templating & PDF Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -326,7 +326,7 @@ INDEX_HTML = """
 
 <div class="container">
     <header>
-        <h1>⚡ PDF Automation Studio</h1>
+        <h1>📜 PolyCert Studio</h1>
         <p>Generate, Add & Manage Custom HTML Templates for Offer Letters & Certificates</p>
     </header>
 

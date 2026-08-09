@@ -1,117 +1,71 @@
-# Automated PDF Generation & Templating System
+# 📜 PolyCert — Dynamic HTML Templating & PDF Generation Engine
 
-An automated Python solution to dynamically generate **Offer Letters**, **Certificates of Completion**, and custom HTML documents into high-quality PDFs using **Jinja2** and multiple PDF rendering backends (Headless Chrome/Edge, WeasyPrint, xhtml2pdf).
+**PolyCert** is an enterprise-grade automated PDF generation and HTML templating engine. Built with Python, Jinja2, and Playwright Headless Chromium, **PolyCert** turns dynamic HTML/CSS templates into pixel-perfect **Certificates**, **Offer Letters**, and custom credentials, with instant cloud storage uploads to **Supabase**, **Cloudinary**, and **AWS S3**.
 
 ---
 
 ## 🌟 Key Features
 
-1. **Jinja2 HTML Template Rendering**
-   - Easily inject dynamic fields (`name`, `role`, `duration`, `serial_no`, `date`, `company_name`, `holding_company`, `signatory`, etc.) into HTML drafts.
+1. **Pixel-Perfect Browser Engine (Playwright Chromium & Headless Browser)**
+   - Supports modern CSS3 features: **Flexbox, CSS Grid, Glassmorphism, Google Fonts (`Space Grotesk`, `Inter`, `Dancing Script`), gradients, and exact A4/landscape print layouts**.
 
-2. **High-Fidelity PDF Conversion**
-   - **Headless Browser Engine (Edge/Chrome)**: Supports modern CSS3 features (Flexbox, CSS Grid, custom Google Fonts like `Space Grotesk` & `Inter`, CSS linear/radial gradients, and exact A4/landscape print layouts).
-   - **WeasyPrint & xhtml2pdf Fallbacks**: Pure Python paged media fallback engines.
+2. **Automated Multi-Engine Fallback System**
+   - **Playwright Chromium**: Primary browser rendering engine for server and local environments.
+   - **Headless Chrome / Edge**: System browser printing fallback.
+   - **xhtml2pdf & WeasyPrint**: Pure Python paged media fallback engines with automatic table-height & CSS variable sanitization.
 
-3. **Multi-Channel Workflows**
-   - **Python API (`generator.py`)**: Direct programmatic access for backend integration.
-   - **CLI & Batch CSV Processing (`cli.py`)**: Process dozens or hundreds of candidates/students from CSV or JSON inputs automatically.
-   - **Web Application (`app.py`)**: Modern Flask web dashboard with live HTML preview & 1-click PDF download.
-   - **Netlify Serverless Deployment**: Serverless Python function setup (`netlify.toml`, `serverless-wsgi`) ready for 1-click cloud deployment.
+3. **Digital Signatures & Custom Credentials**
+   - **Handwritten Cursive Scripts**: Automatic rendering of Google Font cursive signatures (`signature_text`).
+   - **Image & Data URIs**: Native rendering of PNG/SVG image URLs and Base64 Data URIs (`signature_image`).
+
+4. **Automatic Cloud Storage Ingestion**
+   - Built-in multi-provider cloud uploader for **Supabase Storage**, **Cloudinary**, and **AWS S3** with auto-bucket provisioning and public CDN links.
+
+5. **Multi-Channel Integration Workflows**
+   - **REST API (`app.py`)**: Protected by API Access Keys (`X-API-Key`) with single (`/api/generate-certificate-info`) and bulk JSON/ZIP endpoints (`/api/generate-batch-info`).
+   - **Web Studio Dashboard (`app.py`)**: Modern Flask web dashboard for template editing, Jinja2 variable detection, live HTML preview, and 1-click PDF download.
+   - **CLI & Batch CSV Processing (`cli.py`)**: Process candidates from CSV/JSON inputs automatically.
 
 ---
 
-## 📁 Directory Structure
+## 📁 Project Structure
 
 ```
-pdf_automation/
-├── netlify/
-│   └── functions/
-│       └── app.py               # Netlify Serverless Python WSGI handler
+PolyCert/
 ├── templates/
-│   ├── offer_letter.html        # Jinja2 template for Offer Letters
-│   └── certificate.html         # Jinja2 template for Certificates of Completion
-├── public/
-│   └── index.html               # Netlify static fallback publish folder
-├── generator.py                 # Core Jinja2 render & multi-backend PDF conversion engine
-├── cli.py                       # CLI tool for single execution, interactive mode & batch CSV processing
-├── app.py                       # Modern Flask Web Dashboard & REST API
-├── netlify.toml                 # Netlify serverless build & routing configuration
-├── requirements.txt             # Python dependencies for Netlify deployment
-├── NETLIFY_DEPLOYMENT.md        # Complete Netlify step-by-step deployment guide
-└── README.md                    # System documentation
-```
-
-
----
-
-## 🚀 How to Run
-
-### 1. Python Automation Engine (`generator.py`)
-
-Run the core automation script to test single document rendering for both Offer Letter and Certificate:
-
-```bash
-python generator.py
-```
-
-Generated files will be saved in `pdf_automation/output/`:
-- `Offer_Letter_Jane_Doe.pdf`
-- `Certificate_Sayaji_Kapse.pdf`
-
----
-
-### 2. Batch Processing from CSV (`cli.py`)
-
-To generate multiple PDFs in bulk from a CSV file (such as `sample_batch.csv`):
-
-```bash
-# Generate Certificates for all rows in CSV
-python cli.py --csv sample_batch.csv --template certificate
-
-# Generate Offer Letters for all rows in CSV
-python cli.py --csv sample_batch.csv --template offer_letter
-```
-
-### 3. Interactive CLI Mode
-
-Run step-by-step interactive CLI prompts:
-
-```bash
-python cli.py --interactive
+│   ├── certificate_of_compleation.html  # Modern Certificate template with side panel
+│   ├── certificate.html                 # Print-optimized Jinja2 Certificate template
+│   └── offer_letter.html                # Employment Offer Letter template
+├── generator.py                         # Core Jinja2 render & Playwright/Headless PDF engine
+├── cloud_uploader.py                    # Supabase, Cloudinary & AWS S3 auto-uploader
+├── app.py                               # Flask Web Studio Dashboard & REST API
+├── cli.py                               # CLI tool & CSV batch processor
+├── API_DOCUMENTATION.md                 # Complete API integration guide
+├── build.sh                             # Render build script with Playwright setup
+└── requirements.txt                     # System Python dependencies
 ```
 
 ---
 
-### 4. Interactive Web Dashboard (`app.py`)
+## 🚀 Quick Start
 
-Start the web studio app on `http://127.0.0.1:5000`:
-
+### 1. Run Server Locally
 ```bash
 python app.py
 ```
+Open **`http://127.0.0.1:5000`** in your browser to access the **PolyCert Studio Dashboard**.
 
-Then open `http://127.0.0.1:5000` in your web browser to fill out fields, preview HTML live, and download PDFs directly.
-
----
-
-## 📝 Example Python Usage
-
-```python
-from datetime import datetime
-from generator import generate_document
-
-# Define dynamic data
-data = {
-    "name": "Jane Doe",
-    "role": "Senior Full-Stack Developer",
-    "duration": "24 Months",
-    "serial_no": "KT-2026-08-001",
-    "date": datetime.today().strftime('%B %d, %Y'),
-    "company_name": "Kalki Technology Pvt. Ltd.",
-    "holding_company": "Neeta Holdings Pvt. Ltd."
-}
-
-# Generate PDF
-generate_document("templates/offer_letter.html", data, "output/Offer_Letter_Jane_Doe.pdf")
+### 2. Generate PDF via API
+```bash
+curl -X POST http://127.0.0.1:5000/api/generate-certificate-info \
+  -H "X-API-Key: cpa_sk_89f2a71e4b9d0831" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template": "certificate_of_compleation.html",
+    "data": {
+      "name": "Sayaji Kapse",
+      "role": "Senior Software Engineer & AI Specialist",
+      "serial_no": "POLYCERT-2026-001"
+    }
+  }'
 ```
