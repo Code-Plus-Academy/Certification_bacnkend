@@ -243,6 +243,9 @@ def convert_html_to_pdf(html_content, output_filename, temp_html_path=None):
         try:
             from xhtml2pdf import pisa
             clean_html = html_content
+            # Strip 100% table heights which cause ReportLab TypeError in xhtml2pdf
+            clean_html = clean_html.replace('height="100%"', '').replace("height='100%'", '').replace('height: 100%;', '')
+
             css_var_map = {
                 "var(--ink)": "#12141C",
                 "var(--muted)": "#5B6270",
