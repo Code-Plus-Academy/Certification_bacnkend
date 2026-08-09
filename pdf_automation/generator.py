@@ -227,30 +227,24 @@ def convert_html_to_pdf(html_content, output_filename, temp_html_path=None):
     if browser_exe:
         try:
             file_url = f"file:///{temp_html_path.replace('\\', '/')}"
-            cmd = [
-                browser_exe,
-                "--headless",
-                "--no-sandbox",
-                "--disable-gpu",
-                "--no-pdf-header-footer",
-                "--run-all-compositor-stages-before-draw",
-                "--virtual-time-budget=2000",
-                "--print-to-pdf=" + output_filename,
-                file_url
-            ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
-            if os.path.exists(output_filename) and os.path.getsize(output_filename) > 0:
-                print(f"[OK] PDF successfully generated using Headless Browser ({os.path.basename(browser_exe)}): {output_filename}")
-                pdf_generated = True
-                return output_filename
-            else:
-                cmd[1] = "--headless=new"
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            for headless_flag in ["--headless=new", "--headless"]:
+                cmd = [
+                    browser_exe,
+                    headless_flag,
+                    "--no-sandbox",
+                    "--disable-gpu",
+                    "--no-pdf-header-footer",
+                    "--run-all-compositor-stages-before-draw",
+                    "--virtual-time-budget=2000",
+                    "--print-to-pdf=" + output_filename,
+                    file_url
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
                 if os.path.exists(output_filename) and os.path.getsize(output_filename) > 0:
                     print(f"[OK] PDF successfully generated using Headless Browser ({os.path.basename(browser_exe)}): {output_filename}")
                     pdf_generated = True
                     return output_filename
-                error_messages.append(f"Headless browser exit code {result.returncode}: {result.stderr}")
+            error_messages.append(f"Headless browser exit code {result.returncode}: {result.stderr}")
         except Exception as e:
             error_messages.append(f"Headless browser error: {str(e)}")
 
