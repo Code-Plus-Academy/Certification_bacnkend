@@ -206,6 +206,22 @@ def convert_html_to_pdf(html_content, output_filename, temp_html_path=None):
         with open(temp_html_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
+    # Method 0: Try Playwright Chromium (Pixel-perfect browser engine)
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"])
+            page = browser.new_page()
+            page.set_content(html_content, wait_until="load")
+            page.pdf(path=output_filename, print_background=True, format="A4", landscape=True, margin={"top": "0mm", "right": "0mm", "bottom": "0mm", "left": "0mm"})
+            browser.close()
+            if os.path.exists(output_filename) and os.path.getsize(output_filename) > 0:
+                print(f"[OK] PDF successfully generated using Playwright Chromium: {output_filename}")
+                pdf_generated = True
+                return output_filename
+    except Exception as e:
+        error_messages.append(f"Playwright error: {str(e)}")
+
     # Method 1: Try Headless Edge / Chrome
     browser_exe = find_browser()
     if browser_exe:
