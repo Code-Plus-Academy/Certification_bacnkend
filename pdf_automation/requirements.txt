@@ -1,0 +1,9 @@
+Flask>=3.0.0
+Jinja2>=3.1.0
+xhtml2pdf>=0.2.11
+requests>=2.31.0
+serverless-wsgi>=3.0.0
+Werkzeug>=3.0.0
+boto3>=1.28.0
+cloudinary>=1.36.0
+python-dotenv>=1.0.0
