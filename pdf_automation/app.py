@@ -26,6 +26,26 @@ app.url_map.strict_slashes = False
 app.secret_key = "pdf_automation_secret_key"
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500 MB max payload limit
 
+# Async background pre-installation of Playwright Chromium on server boot
+import threading
+import subprocess
+import sys
+
+def _async_install_playwright():
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            try:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-gpu"])
+                browser.close()
+            except Exception:
+                print("[STARTUP] Pre-installing Playwright Chromium binaries on server startup...")
+                subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=False)
+    except Exception as e:
+        print(f"[STARTUP] Playwright check note: {e}")
+
+threading.Thread(target=_async_install_playwright, daemon=True).start()
+
 @app.before_request
 def authenticate_api_requests():
     expected_key = os.environ.get("API_ACCESS_KEY") or os.environ.get("SERVER_API_KEY")
