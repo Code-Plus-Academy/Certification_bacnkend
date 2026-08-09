@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Certificate of Completion — {{ name }} — {{ organization_name|default('Code Plus Academy') }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#12141C;
@@ -362,8 +362,15 @@
 
     <div class="footer">
       <div class="sig-block">
+        {% if signature_image %}
+          <img src="{{ signature_image }}" class="sig-img" alt="Signature" style="max-height: 40px; max-width: 150px; display: block; margin-bottom: 4px; object-fit: contain;">
+        {% elif signature_text %}
+          <div class="sig-text-cursive" style="font-family: 'Dancing Script', cursive; font-size: 24px; font-weight: 700; color: var(--blue); margin-bottom: 2px; line-height: 1;">{{ signature_text }}</div>
+        {% else %}
+          <div class="sig-text-cursive" style="font-family: 'Dancing Script', cursive; font-size: 24px; font-weight: 700; color: var(--blue); margin-bottom: 2px; line-height: 1;">{{ signatory|default('Dr. Alex Vance') }}</div>
+        {% endif %}
         <div class="sig-name">{{ signatory|default('Director of Education') }}</div>
-        <div class="sig-role">Authorized Signatory</div>
+        <div class="sig-role">{{ signatory_role|default('Authorized Signatory') }}</div>
         <div class="sig-org">{{ organization_name|default('Code Plus Academy') }}</div>
       </div>
 
