@@ -1,8 +1,19 @@
-node_modules/
-build/
-dist/
-coverage/
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Environment Variables
+.env
+.env.local
+
+# Generated PDFs & temp output
+output/*.pdf
+!output/.gitkeep
+
+# OS generated files
 .DS_Store
-*.log
-.env*
-!.env.example
+Thumbs.db
