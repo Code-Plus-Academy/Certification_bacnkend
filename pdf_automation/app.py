@@ -22,6 +22,7 @@ Request.max_form_memory_size = 500 * 1024 * 1024  # 500 Megabytes
 Request.max_content_length = 500 * 1024 * 1024     # 500 Megabytes
 
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 app.secret_key = "pdf_automation_secret_key"
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500 MB max payload limit
 
