@@ -15,7 +15,13 @@ def upload_to_supabase(file_path, bucket_name=None, destination_path=None):
     Env Vars Required: SUPABASE_URL, SUPABASE_KEY (or SUPABASE_SERVICE_ROLE_KEY), optional SUPABASE_BUCKET
     """
     supabase_url = os.environ.get("SUPABASE_URL")
-    supabase_key = os.environ.get("SUPABASE_KEY") or os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    supabase_key = (
+        os.environ.get("SUPABASE_SECRET_KEY") or 
+        os.environ.get("SUPABASE_KEY") or 
+        os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or 
+        os.environ.get("SUPABASE_SERVICE_KEY") or
+        os.environ.get("SUPABASE_PUBLISHABLE_KEY")
+    )
     bucket_name = bucket_name or os.environ.get("SUPABASE_BUCKET", "certificates")
     
     if not supabase_url or not supabase_key:
