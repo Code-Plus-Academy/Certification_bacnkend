@@ -25,6 +25,29 @@ app = Flask(__name__)
 app.secret_key = "pdf_automation_secret_key"
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500 MB max payload limit
 
+@app.before_request
+def authenticate_api_requests():
+    expected_key = os.environ.get("API_ACCESS_KEY") or os.environ.get("SERVER_API_KEY")
+    if not expected_key:
+        return None
+        
+    if request.path.startswith('/api/'):
+        provided_key = (
+            request.headers.get('X-API-Key') or 
+            request.headers.get('x-api-key') or 
+            request.args.get('api_key')
+        )
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            provided_key = auth_header.split('Bearer ', 1)[1].strip()
+            
+        if not provided_key or provided_key != expected_key:
+            return jsonify({
+                "status": "error",
+                "error": "Unauthorized: Invalid or missing API access key",
+                "message": "Please provide your server access key via 'X-API-Key' header or 'Authorization: Bearer <key>'"
+            }), 401
+
 @app.errorhandler(413)
 def request_entity_too_large(error):
     flash("Request Entity Too Large: The transmitted HTML template or data exceeds the capacity limit (Max allowed is 500 MB). Please reduce embedded image sizes or upload external assets.")
