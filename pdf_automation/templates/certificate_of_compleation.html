@@ -48,6 +48,17 @@
     overflow:hidden;
   }
 
+  /* single continuous frame: dark stroke over the light side, light stroke over the dark panel */
+  .frame-bar{
+    position:absolute;
+    background:rgba(18,20,28,0.24);
+    pointer-events:none;
+    z-index:5;
+  }
+  .frame-bar.on-panel{
+    background:rgba(255,255,255,0.32);
+  }
+
   .main{
     flex:1;
     padding:15mm 15mm 12mm 18mm;
@@ -63,6 +74,9 @@
     background:radial-gradient(circle, rgba(30,200,240,0.10) 0%, rgba(139,61,245,0.08) 45%, transparent 72%);
     pointer-events:none;
     z-index:0;
+  }
+  .main::after{
+    display:none;
   }
   .main > *{
     position:relative;
@@ -268,6 +282,9 @@
     justify-content:space-between;
     padding:16mm 12mm;
   }
+  .panel::after{
+    display:none;
+  }
   .panel svg.nodes{
     position:absolute;
     inset:0;
@@ -370,6 +387,14 @@
 
 <div class="sheet">
 
+  <!-- continuous frame: color adapts to the background beneath it -->
+  <div class="frame-bar" style="top:6mm; left:6mm; width:209mm; height:1.4px;"></div>
+  <div class="frame-bar on-panel" style="top:6mm; left:215mm; width:76mm; height:1.4px;"></div>
+  <div class="frame-bar" style="bottom:6mm; left:6mm; width:209mm; height:1.4px;"></div>
+  <div class="frame-bar on-panel" style="bottom:6mm; left:215mm; width:76mm; height:1.4px;"></div>
+  <div class="frame-bar" style="top:6mm; left:6mm; width:1.4px; height:198mm;"></div>
+  <div class="frame-bar on-panel" style="top:6mm; right:6mm; width:1.4px; height:198mm;"></div>
+
   <div class="main">
 
     <div class="top-row">
@@ -422,9 +447,9 @@
       </div>
 
       <div class="sig-block" style="text-align:right;">
-        <div class="sig-name">Program Lead</div>
-        <div class="sig-role">Program Director</div>
-        <div class="sig-org">Internship Committee</div>
+        <div class="sig-name">{{ program_lead }}</div>
+        <div class="sig-role">{{ program_lead_title }}</div>
+        <div class="sig-org">{{ program_lead_org }}</div>
       </div>
     </div>
 

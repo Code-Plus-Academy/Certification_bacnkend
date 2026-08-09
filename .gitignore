@@ -13,6 +13,8 @@ env/
 # Generated PDFs & temp output
 output/*.pdf
 !output/.gitkeep
+test*.pdf
+scratch/
 
 # OS generated files
 .DS_Store
