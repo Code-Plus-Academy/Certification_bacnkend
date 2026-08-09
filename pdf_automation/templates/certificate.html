@@ -1,406 +1,259 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Certificate of Completion — {{ name }} — {{ organization_name|default('Code Plus Academy') }}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<title>Certificate of Completion</title>
 <style>
-  :root{
-    --ink:#12141C;
-    --muted:#5B6270;
-    --faint:#9198A6;
-    --line:#E7E9EE;
-    --cyan:#1EC8F0;
-    --blue:#2F6DF6;
-    --violet:#8B3DF5;
-    --magenta:#D537D6;
-    --panel-a:#0E1220;
-    --panel-b:#1A1030;
-    --paper:#FFFFFF;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:#FFFFFF;
-    font-family:'Inter',sans-serif;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:100vh;
-    padding:0;
-  }
-
-  .sheet{
-    position:relative;
-    width:297mm;
-    height:210mm;
-    max-width:100%;
-    aspect-ratio:297/210;
-    background:var(--paper);
-    box-shadow:none;
-    display:flex;
-    overflow:hidden;
-  }
-
-  .main{
-    flex:1;
-    padding:15mm 15mm 12mm 18mm;
-    display:flex;
-    flex-direction:column;
-    position:relative;
-  }
-  .main::before{
-    content:"";
-    position:absolute;
-    top:-60px;right:-60px;
-    width:340px;height:340px;
-    background:radial-gradient(circle, rgba(30,200,240,0.10) 0%, rgba(139,61,245,0.08) 45%, transparent 72%);
-    pointer-events:none;
-    z-index:0;
-  }
-  .main > *{
-    position:relative;
-    z-index:1;
-  }
-
-  .top-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-  }
-  .brand{
-    position:relative;
-  }
-  .brand .wordmark-text{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:22px;
-    font-weight:800;
-    letter-spacing:-0.5px;
-    background:linear-gradient(90deg, var(--cyan), var(--blue), var(--violet));
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:#2F6DF6;
-  }
-  .brand::before{
-    content:"";
-    position:absolute;
-    left:-14px;top:50%;
-    transform:translateY(-50%);
-    width:110px;height:110px;
-    background:radial-gradient(circle, rgba(47,109,246,0.16) 0%, rgba(213,55,214,0.10) 45%, transparent 72%);
-    z-index:1;
-    pointer-events:none;
-  }
-  .doc-tag{
-    font-size:9px;
-    font-weight:700;
-    letter-spacing:1.6px;
-    color:#fff;
-    text-transform:uppercase;
-    padding:6px 13px;
-    border-radius:20px;
-    background:linear-gradient(100deg, var(--cyan), var(--blue), var(--violet));
-    box-shadow:0 4px 14px -3px rgba(47,109,246,0.45);
-    display:flex;
-    align-items:center;
-    gap:6px;
-  }
-  .doc-tag::before{
-    content:"";
-    width:6px;height:6px;
-    border-radius:50%;
-    background:#fff;
-    box-shadow:0 0 6px 1px rgba(255,255,255,0.9);
-  }
-
-  .headline{
-    margin-top:12mm;
-  }
-  .eyebrow{
-    font-size:10.5px;
-    font-weight:700;
-    letter-spacing:2.6px;
-    color:var(--muted);
-    text-transform:uppercase;
-    margin-bottom:8px;
-  }
-  h1.title{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:33px;
-    font-weight:700;
-    color:var(--ink);
-    margin:0 0 3px;
-    letter-spacing:-0.5px;
-    line-height:1.12;
-  }
-  .title-accent{
-    background:linear-gradient(90deg, var(--blue), var(--violet), var(--magenta));
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:#8B3DF5;
-  }
-
-  .awarded-to{
-    margin-top:10mm;
-    font-size:11.5px;
-    color:var(--muted);
-    font-weight:500;
-  }
-  .name{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:52px;
-    font-weight:700;
-    margin:6px 0 16px;
-    letter-spacing:-1px;
-    line-height:1.05;
-    position:relative;
-    display:inline-block;
-    color:var(--ink);
-    border-bottom:3px solid var(--blue);
-    padding-bottom:4px;
-  }
-
-  .body-text{
-    max-width:480px;
-    font-size:12.5px;
-    line-height:1.85;
-    color:var(--muted);
-  }
-  .body-text b{
-    color:var(--ink);
-    font-weight:700;
-  }
-  .body-text .accent-word{
-    color:var(--blue);
-    font-weight:700;
-  }
-
-  .stat-row{
-    display:flex;
-    gap:34px;
-    margin-top:8mm;
-  }
-  .stat{
-    border-left:2px solid var(--line);
-    padding-left:12px;
-  }
-  .stat .k{
-    font-size:8.5px;
-    font-weight:700;
-    letter-spacing:1.4px;
-    text-transform:uppercase;
-    color:var(--faint);
-    margin-bottom:4px;
-  }
-  .stat .v{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:14px;
-    font-weight:600;
-    color:var(--ink);
-  }
-
-  .footer{
-    margin-top:auto;
-    display:flex;
-    align-items:flex-end;
-    justify-content:space-between;
-    padding-top:8mm;
-  }
-  .sig-block{
-    width:170px;
-  }
-  .sig-name{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:13px;
-    font-weight:700;
-    color:var(--ink);
-    padding-bottom:7px;
-    border-bottom:1.4px solid var(--ink);
-    margin-bottom:6px;
-  }
-  .sig-role{
-    font-size:9px;
-    font-weight:600;
-    letter-spacing:0.8px;
-    text-transform:uppercase;
-    color:var(--muted);
-  }
-  .sig-org{
-    font-size:8.5px;
-    color:var(--faint);
-    margin-top:1px;
-  }
-
-  .meta-strip{
-    display:flex;
-    gap:22px;
-    font-size:8.5px;
-    color:var(--faint);
-  }
-  .meta-strip b{
-    color:var(--ink);
-    font-weight:700;
-  }
-
-  /* ---- side panel ---- */
-  .panel{
-    width:82mm;
-    position:relative;
-    background:#0E1220;
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    padding:16mm 12mm;
-    color:#FFFFFF;
-  }
-  .panel-top{
-    position:relative;
-    z-index:2;
-  }
-  .panel-badge{
-    width:72px;height:72px;
-    border-radius:18px;
-    background:rgba(255,255,255,0.07);
-    border:1px solid rgba(255,255,255,0.2);
-    display:flex;align-items:center;justify-content:center;
-    margin-bottom:16px;
-    overflow:hidden;
-    position:relative;
-    font-size:32px;
-  }
-  .panel-heading{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:15px;
-    font-weight:600;
-    color:#fff;
-    line-height:1.4;
-    max-width:180px;
-  }
-  .panel-heading .grad{
-    color:#6FD8F7;
-  }
-
-  .panel-bottom{
-    position:relative;
-    z-index:2;
-  }
-  .panel-id{
-    font-size:9px;
-    color:rgba(255,255,255,0.5);
-    letter-spacing:1px;
-    text-transform:uppercase;
-    margin-bottom:5px;
-    font-weight:600;
-  }
-  .panel-idval{
-    font-family:'Space Grotesk',sans-serif;
-    font-size:15px;
-    font-weight:600;
-    color:#fff;
-    letter-spacing:0.6px;
-    margin-bottom:14px;
-  }
-  .panel-verify{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    font-size:9px;
-    color:rgba(255,255,255,0.65);
-    padding-top:12px;
-    border-top:1px solid rgba(255,255,255,0.14);
-  }
-
-  @media print{
-    body{background:none;padding:0;}
-    .sheet{box-shadow:none;}
-    @page{size:297mm 210mm;margin:0;}
-  }
+    @page {
+        size: A4 landscape;
+        margin: 0mm;
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Helvetica, Arial, sans-serif;
+        background-color: #ffffff;
+        color: #12141C;
+    }
+    .cert-table {
+        width: 100%;
+        height: 100%;
+        border-collapse: collapse;
+    }
+    .main-cell {
+        width: 72%;
+        vertical-align: top;
+        padding: 35px 40px 25px 40px;
+        background-color: #FFFFFF;
+    }
+    .side-cell {
+        width: 28%;
+        vertical-align: top;
+        padding: 35px 25px 25px 25px;
+        background-color: #0E1220;
+        color: #FFFFFF;
+    }
+    .brand-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2F6DF6;
+        letter-spacing: 1px;
+    }
+    .doc-badge {
+        background-color: #2F6DF6;
+        color: #FFFFFF;
+        font-size: 9px;
+        font-weight: bold;
+        padding: 5px 12px;
+        border-radius: 12px;
+        text-align: right;
+    }
+    .eyebrow {
+        font-size: 11px;
+        font-weight: bold;
+        color: #5B6270;
+        letter-spacing: 2px;
+        margin-top: 30px;
+        margin-bottom: 5px;
+    }
+    .cert-title {
+        font-size: 32px;
+        font-weight: bold;
+        color: #12141C;
+        margin-top: 0px;
+        margin-bottom: 25px;
+    }
+    .cert-title-accent {
+        color: #8B3DF5;
+    }
+    .awarded-to {
+        font-size: 11px;
+        color: #5B6270;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+    .recipient-name {
+        font-size: 42px;
+        font-weight: bold;
+        color: #12141C;
+        margin-bottom: 15px;
+        border-bottom: 3px solid #2F6DF6;
+        padding-bottom: 8px;
+    }
+    .body-desc {
+        font-size: 13px;
+        line-height: 1.7;
+        color: #5B6270;
+        margin-bottom: 30px;
+    }
+    .body-desc b {
+        color: #12141C;
+    }
+    .stat-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 35px;
+    }
+    .stat-cell {
+        vertical-align: top;
+        padding-left: 15px;
+        border-left: 2px solid #E7E9EE;
+    }
+    .stat-label {
+        font-size: 9px;
+        font-weight: bold;
+        color: #9198A6;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+    }
+    .stat-value {
+        font-size: 14px;
+        font-weight: bold;
+        color: #12141C;
+    }
+    .footer-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .sig-name {
+        font-size: 14px;
+        font-weight: bold;
+        color: #12141C;
+        border-bottom: 1.5px solid #12141C;
+        padding-bottom: 5px;
+        margin-bottom: 4px;
+    }
+    .sig-role {
+        font-size: 10px;
+        font-weight: bold;
+        color: #5B6270;
+    }
+    .sig-org {
+        font-size: 9px;
+        color: #9198A6;
+    }
+    .meta-text {
+        font-size: 9px;
+        color: #9198A6;
+        text-align: right;
+    }
+    .meta-text b {
+        color: #12141C;
+    }
+    .panel-badge {
+        font-size: 36px;
+        margin-bottom: 20px;
+    }
+    .panel-heading {
+        font-size: 16px;
+        font-weight: bold;
+        color: #FFFFFF;
+        line-height: 1.4;
+        margin-bottom: 180px;
+    }
+    .panel-heading-accent {
+        color: #1EC8F0;
+    }
+    .panel-id-label {
+        font-size: 9px;
+        color: #9198A6;
+        letter-spacing: 1px;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+    .panel-id-val {
+        font-size: 15px;
+        font-weight: bold;
+        color: #FFFFFF;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+    }
+    .panel-verify {
+        font-size: 10px;
+        color: #1EC8F0;
+        border-top: 1px solid #232D3F;
+        padding-top: 15px;
+    }
 </style>
 </head>
 <body>
 
-<div class="sheet">
+<table class="cert-table" width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+    <td class="main-cell" width="72%" vertical-align="top">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td align="left" class="brand-title">{{ organization_name|default('CODE PLUS ACADEMY') }}</td>
+            <td align="right"><span class="doc-badge">{{ doc_tag|default('VERIFIED CERTIFICATE') }}</span></td>
+        </tr>
+        </table>
 
-  <div class="main">
+        <div class="eyebrow">{{ eyebrow|default('CERTIFICATE OF COMPLETION') }}</div>
+        <div class="cert-title">Official <span class="cert-title-accent">Credential</span></div>
 
-    <div class="top-row">
-      <div class="brand">
-        <div class="wordmark-text">{{ organization_name|default('CODE PLUS ACADEMY') }}</div>
-      </div>
-      <div class="doc-tag">{{ doc_tag|default('VERIFIED CERTIFICATE') }}</div>
-    </div>
+        <div class="awarded-to">THIS IS PROUDLY AWARDED TO</div>
+        <div class="recipient-name">{{ name }}</div>
 
-    <div class="headline">
-      <div class="eyebrow">{{ eyebrow|default('CERTIFICATE OF COMPLETION') }}</div>
-      <h1 class="title">Official <span class="title-accent">Credential</span></h1>
-    </div>
+        <div class="body-desc">
+            For successfully completing the comprehensive professional program in <b>{{ role|default('Software Engineering') }}</b>. Demonstrated exceptional proficiency, commitment, and mastery of course modules at <b>{{ organization_name|default('Code Plus Academy') }}</b>.
+        </div>
 
-    <div class="awarded-to">THIS IS PROUDLY AWARDED TO</div>
+        <table class="stat-table" width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td class="stat-cell" width="33%">
+                <div class="stat-label">DURATION</div>
+                <div class="stat-value">{{ duration|default('120 Hours') }}</div>
+            </td>
+            <td class="stat-cell" width="33%">
+                <div class="stat-label">SERIAL NO</div>
+                <div class="stat-value">{{ serial_no|default('CPA-2026-001') }}</div>
+            </td>
+            <td class="stat-cell" width="34%">
+                <div class="stat-label">ISSUE DATE</div>
+                <div class="stat-value">{{ date }}</div>
+            </td>
+        </tr>
+        </table>
 
-    <div class="name">{{ name }}</div>
+        <table class="footer-table" width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td width="55%" vertical-align="bottom">
+                {% if signature_image %}
+                    <img src="{{ signature_image }}" style="max-height: 40px; max-width: 150px; display: block; margin-bottom: 4px;">
+                {% elif signature_text %}
+                    <div style="font-size: 20px; font-weight: bold; color: #2F6DF6; margin-bottom: 4px; font-style: italic;">{{ signature_text }}</div>
+                {% else %}
+                    <div style="font-size: 20px; font-weight: bold; color: #2F6DF6; margin-bottom: 4px; font-style: italic;">{{ signatory|default('Dr. Alex Vance') }}</div>
+                {% endif %}
+                <div class="sig-name">{{ signatory|default('Director of Education') }}</div>
+                <div class="sig-role">{{ signatory_role|default('Authorized Signatory') }}</div>
+                <div class="sig-org">{{ organization_name|default('Code Plus Academy') }}</div>
+            </td>
+            <td width="45%" vertical-align="bottom" align="right" class="meta-text">
+                STATUS: <b>VERIFIED</b><br>
+                ISSUER: <b>{{ holding_company|default('Code Plus Group') }}</b>
+            </td>
+        </tr>
+        </table>
+    </td>
 
-    <div class="body-text">
-      For successfully completing the comprehensive professional program in <b>{{ role|default('Software Engineering') }}</b>. Demonstrated exceptional proficiency, commitment, and mastery of course modules at <span class="accent-word">{{ organization_name|default('Code Plus Academy') }}</span>.
-    </div>
+    <td class="side-cell" width="28%" vertical-align="top">
+        <div class="panel-badge">🎓</div>
+        <div class="panel-heading">
+            Excellence in<br>
+            <span class="panel-heading-accent">{{ role }}</span>
+        </div>
 
-    <div class="stat-row">
-      <div class="stat">
-        <div class="k">DURATION</div>
-        <div class="v">{{ duration|default('120 Hours') }}</div>
-      </div>
-      <div class="stat">
-        <div class="k">SERIAL NO</div>
-        <div class="v">{{ serial_no|default('CPA-2026-001') }}</div>
-      </div>
-      <div class="stat">
-        <div class="k">ISSUE DATE</div>
-        <div class="v">{{ date }}</div>
-      </div>
-    </div>
+        <div class="panel-id-label">CERTIFICATE ID</div>
+        <div class="panel-id-val">{{ serial_no }}</div>
 
-    <div class="footer">
-      <div class="sig-block">
-        {% if signature_image %}
-          <img src="{{ signature_image }}" class="sig-img" alt="Signature" style="max-height: 40px; max-width: 150px; display: block; margin-bottom: 4px; object-fit: contain;">
-        {% elif signature_text %}
-          <div class="sig-text-cursive" style="font-family: 'Dancing Script', cursive; font-size: 24px; font-weight: 700; color: var(--blue); margin-bottom: 2px; line-height: 1;">{{ signature_text }}</div>
-        {% else %}
-          <div class="sig-text-cursive" style="font-family: 'Dancing Script', cursive; font-size: 24px; font-weight: 700; color: var(--blue); margin-bottom: 2px; line-height: 1;">{{ signatory|default('Dr. Alex Vance') }}</div>
-        {% endif %}
-        <div class="sig-name">{{ signatory|default('Director of Education') }}</div>
-        <div class="sig-role">{{ signatory_role|default('Authorized Signatory') }}</div>
-        <div class="sig-org">{{ organization_name|default('Code Plus Academy') }}</div>
-      </div>
-
-      <div class="meta-strip">
-        <div>STATUS: <b>VERIFIED</b></div>
-        <div>ISSUER: <b>{{ holding_company|default('Code Plus Group') }}</b></div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="panel">
-    <div class="panel-top">
-      <div class="panel-badge">🎓</div>
-      <div class="panel-heading">
-        Excellence in <span class="grad">{{ role }}</span>
-      </div>
-    </div>
-
-    <div class="panel-bottom">
-      <div class="panel-id">CERTIFICATE ID</div>
-      <div class="panel-idval">{{ serial_no }}</div>
-
-      <div class="panel-verify">
-        <span>✓ Digitally signed and verified</span>
-      </div>
-    </div>
-  </div>
-
-</div>
+        <div class="panel-verify">
+            ✓ Digitally Signed &amp; Verified
+        </div>
+    </td>
+</tr>
+</table>
 
 </body>
 </html>
