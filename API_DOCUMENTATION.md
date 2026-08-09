@@ -33,6 +33,14 @@ All `/api/` endpoints are protected by an **API Access Key**. You must supply yo
 
 ---
 
+### 🔒 Frontend Web Dashboard Authentication (`/login`)
+The PolyCert Studio Web Dashboard (`/`) is protected by **Session Authentication**:
+- **Login Redirect**: Accessing any dashboard route (`/`, `/?tab=templates`) without an active session automatically redirects to `/login`.
+- **Authentication Key**: Enter your **Server Access Key** (`API_ACCESS_KEY=cpa_sk_89f2a71e4b9d0831`) in the dark-mode login card to authenticate.
+- **Logout**: Click **🔒 Logout** in the navigation header or navigate to `/logout` to clear your active session.
+
+---
+
 ## 📑 Quick Reference Table
 
 | Category | HTTP Method | Endpoint | Description |

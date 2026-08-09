@@ -2,7 +2,7 @@ import os
 import json
 import csv
 from datetime import datetime
-from flask import Flask, render_template_string, request, send_file, redirect, url_for, jsonify, flash
+from flask import Flask, render_template_string, request, send_file, redirect, url_for, jsonify, flash, session
 from generator import (
     generate_document, 
     render_html_template, 
@@ -46,12 +46,160 @@ def _async_install_playwright():
 
 threading.Thread(target=_async_install_playwright, daemon=True).start()
 
+LOGIN_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolyCert Studio — Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0A0D14;
+            --card-bg: #121824;
+            --border: #232D3F;
+            --accent-blue: #2F6DF6;
+            --accent-cyan: #1EC8F0;
+            --accent-violet: #8B3DF5;
+            --text-main: #F1F5F9;
+            --text-muted: #94A3B8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-violet));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 14px;
+            background: #0B0E17;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-family: monospace;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            border-color: var(--accent-blue);
+            outline: none;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-violet));
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(47, 109, 246, 0.4);
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn-submit:hover { opacity: 0.95; }
+        .btn-submit:active { transform: scale(0.98); }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #F87171;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .key-hint {
+            margin-top: 24px;
+            font-size: 11px;
+            color: var(--text-muted);
+            background: #0B0E17;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="logo">📜 PolyCert Studio</div>
+    <div class="subtitle">Admin Authentication Required</div>
+
+    {% if error %}
+    <div class="alert-error">⚠️ {{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/login">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <div class="form-group">
+            <label>Server Access Key / Admin Password</label>
+            <input type="password" name="api_key" placeholder="Enter server access key..." required autofocus>
+        </div>
+
+        <button type="submit" class="btn-submit">🔓 Unlock Dashboard</button>
+    </form>
+
+    <div class="key-hint">
+        🔒 Protected by <code>API_ACCESS_KEY</code>
+    </div>
+</div>
+
+</body>
+</html>
+"""
+
 @app.before_request
-def authenticate_api_requests():
+def authenticate_requests():
     expected_key = os.environ.get("API_ACCESS_KEY") or os.environ.get("SERVER_API_KEY")
     if not expected_key:
         return None
-        
+
+    # 1. API Route Authentication
     if request.path.startswith('/api/'):
         provided_key = (
             request.headers.get('X-API-Key') or 
@@ -68,6 +216,37 @@ def authenticate_api_requests():
                 "error": "Unauthorized: Invalid or missing API access key",
                 "message": "Please provide your server access key via 'X-API-Key' header or 'Authorization: Bearer <key>'"
             }), 401
+
+    # 2. Frontend Web Dashboard Session Authentication
+    public_paths = ['/login', '/logout', '/static/', '/output/']
+    if not any(request.path.startswith(p) for p in public_paths):
+        if not session.get('authenticated'):
+            return redirect(url_for('login', next=request.url))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    expected_key = os.environ.get("API_ACCESS_KEY") or os.environ.get("SERVER_API_KEY")
+    if not expected_key:
+        session['authenticated'] = True
+        return redirect(url_for('index'))
+
+    next_url = request.args.get('next') or request.form.get('next') or url_for('index')
+    error = None
+
+    if request.method == 'POST':
+        provided_key = request.form.get('api_key', '').strip()
+        if provided_key == expected_key:
+            session['authenticated'] = True
+            return redirect(next_url)
+        else:
+            error = "Invalid API Access Key or Admin Password"
+
+    return render_template_string(LOGIN_HTML, error=error, next_url=next_url)
+
+@app.route('/logout')
+def logout():
+    session.pop('authenticated', None)
+    return redirect(url_for('login'))
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
@@ -342,6 +521,7 @@ INDEX_HTML = """
         <a href="/?tab=generate" class="nav-tab {% if active_tab == 'generate' %}active{% endif %}">📄 Generate PDF</a>
         <a href="/?tab=templates" class="nav-tab {% if active_tab == 'templates' %}active{% endif %}">➕ Manage Custom HTML Templates</a>
         <a href="/guide" target="_blank" class="nav-tab">📖 HTML Draft Structure Guide</a>
+        <a href="/logout" class="nav-tab" style="margin-left: auto; background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3);">🔒 Logout</a>
     </div>
 
     {% if active_tab == 'generate' %}
