@@ -2,6 +2,12 @@ import os
 import json
 import csv
 from datetime import datetime
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from flask import Flask, render_template_string, request, send_file, redirect, url_for, jsonify, flash, session
 from generator import (
     generate_document, 
@@ -14,6 +20,8 @@ from generator import (
     TEMPLATES_DIR, 
     OUTPUT_DIR
 )
+from cloud_uploader import download_single_template_from_supabase
+
 
 from flask import Request
 
@@ -197,10 +205,17 @@ LOGIN_HTML = """
 def handle_authentication():
     expected_key = os.environ.get("API_ACCESS_KEY") or os.environ.get("SERVER_API_KEY")
 
-    # 1. Allow login page, static assets, and public output downloads freely
-    public_paths = ['/login', '/logout', '/static/', '/output/']
-    if any(request.path.startswith(p) for p in public_paths) or request.endpoint == 'static':
+    # 1. Allow login page, static assets, public output downloads, and keep-alive healthchecks unconditionally
+    path_lower = request.path.lower()
+    if (
+        any(k in path_lower for k in ['health', 'healthz', 'ping', 'login', 'logout']) or
+        request.path.startswith('/static/') or
+        request.path.startswith('/output/') or
+        request.endpoint == 'static'
+    ):
         return None
+
+
 
     # 2. Determine if incoming request is an API request or Browser request
     is_api_request = (
@@ -266,6 +281,23 @@ def login():
 def logout():
     session.pop('authenticated', None)
     return redirect(url_for('login'))
+
+@app.route('/health')
+@app.route('/healthz')
+@app.route('/ping')
+@app.route('/api/health')
+def healthcheck():
+    """
+    Lightweight keep-alive & health check endpoint for UptimeRobot, Render, or cron pingers.
+    Zero resource overhead - prevents server sleep/cold-starts on free hosting providers.
+    """
+    return jsonify({
+        "status": "healthy",
+        "service": "PolyCert Studio Engine",
+        "uptime": "ok",
+        "timestamp": datetime.now().isoformat()
+    }), 200
+
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
@@ -714,7 +746,15 @@ def resolve_template_path(template_filename):
     fallback_path = os.path.join(tempfile.gettempdir(), 'pdf_automation_templates', template_filename)
     if os.path.exists(fallback_path):
         return fallback_path
+        
+    # Attempt on-demand download from Supabase Storage
+    target_dir = TEMPLATES_DIR if os.access(TEMPLATES_DIR, os.W_OK) else os.path.join(tempfile.gettempdir(), 'pdf_automation_templates')
+    downloaded_path = download_single_template_from_supabase(template_filename, target_dir)
+    if downloaded_path and os.path.exists(downloaded_path):
+        return downloaded_path
+
     return None
+
 
 @app.route('/generate', methods=['POST'])
 def generate():

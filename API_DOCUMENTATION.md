@@ -51,6 +51,7 @@ The interactive Web Dashboard (`http://127.0.0.1:5000/`) is protected by **Flask
 
 | Category | HTTP Method | Endpoint | Description |
 | :--- | :--- | :--- | :--- |
+| **Health** | `GET` | `/health` / `/ping` | Lightweight zero-overhead keep-alive & health check |
 | **Auth** | `POST` | `/login` | Authenticate web session using Access Key |
 | **Auth** | `GET` | `/logout` | End web session and redirect to `/login` |
 | **Templates** | `GET` | `/api/templates` | List all installed templates & Jinja2 variables |

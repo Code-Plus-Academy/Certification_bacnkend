@@ -8,6 +8,25 @@ from jinja2 import Environment, Template, meta
 
 import tempfile
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
+    from cloud_uploader import (
+        upload_template_to_supabase,
+        fetch_templates_from_supabase,
+        delete_template_from_supabase,
+        download_single_template_from_supabase
+    )
+except ImportError:
+    upload_template_to_supabase = lambda fname, content: None
+    fetch_templates_from_supabase = lambda target_dir: []
+    delete_template_from_supabase = lambda fname: False
+    download_single_template_from_supabase = lambda fname, target_dir: None
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
@@ -64,11 +83,17 @@ def extract_template_variables(template_str_or_path):
 def list_templates():
     """
     Lists all available HTML templates in the templates directory along with detected variables.
-    Supports reading custom templates from /tmp on serverless environments.
+    Syncs with Supabase Storage to restore persisted custom templates.
     """
     templates_list = []
-    dirs_to_check = [TEMPLATES_DIR]
     custom_tmp_dir = os.path.join(tempfile.gettempdir(), 'pdf_automation_templates')
+    os.makedirs(custom_tmp_dir, exist_ok=True)
+    
+    # Sync custom templates from Supabase Storage into local/tmp storage
+    target_sync_dir = TEMPLATES_DIR if os.access(TEMPLATES_DIR, os.W_OK) else custom_tmp_dir
+    fetch_templates_from_supabase(target_sync_dir)
+
+    dirs_to_check = [TEMPLATES_DIR]
     if os.path.exists(custom_tmp_dir) and custom_tmp_dir != TEMPLATES_DIR:
         dirs_to_check.append(custom_tmp_dir)
         
@@ -92,7 +117,7 @@ def list_templates():
 def save_custom_template(template_name, html_content):
     """
     Saves a new HTML template to the templates directory after validating Jinja2 syntax.
-    Falls back to /tmp/pdf_automation_templates on read-only serverless filesystems.
+    Also uploads the template to Supabase Storage for persistent cloud storage.
     """
     if not template_name.endswith('.html'):
         safe_name = template_name.lower().replace(' ', '_') + '.html'
@@ -118,12 +143,16 @@ def save_custom_template(template_name, html_content):
             f.write(html_content)
         
     detected_vars = extract_template_variables(target_path)
-    print(f"[OK] Custom template saved successfully: {target_path} (Detected variables: {detected_vars})")
+    print(f"[OK] Custom template saved locally: {target_path} (Detected variables: {detected_vars})")
+
+    # Persist to Supabase Storage
+    upload_template_to_supabase(safe_name, html_content)
+
     return safe_name, target_path, detected_vars
 
 def delete_template(template_name):
     """
-    Deletes a template file from system or /tmp templates directory.
+    Deletes a template file from system, /tmp templates directory, and Supabase Storage.
     """
     if not template_name.endswith('.html'):
         template_name += '.html'
@@ -146,11 +175,17 @@ def delete_template(template_name):
         except (PermissionError, OSError):
             pass
             
+    # Also delete from Supabase Storage
+    supabase_deleted = delete_template_from_supabase(template_name)
+    if supabase_deleted:
+        deleted = True
+        
     if deleted:
         print(f"[OK] Template '{template_name}' removed successfully.")
         return True
     else:
         raise FileNotFoundError(f"Template '{template_name}' does not exist.")
+
 
 def find_browser():
     """
