@@ -8,6 +8,25 @@ from jinja2 import Environment, Template, meta
 
 import tempfile
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
+    from cloud_uploader import (
+        upload_template_to_supabase,
+        fetch_templates_from_supabase,
+        delete_template_from_supabase,
+        download_single_template_from_supabase
+    )
+except ImportError:
+    upload_template_to_supabase = lambda fname, content: None
+    fetch_templates_from_supabase = lambda target_dir: []
+    delete_template_from_supabase = lambda fname: False
+    download_single_template_from_supabase = lambda fname, target_dir: None
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
@@ -64,11 +83,17 @@ def extract_template_variables(template_str_or_path):
 def list_templates():
     """
     Lists all available HTML templates in the templates directory along with detected variables.
-    Supports reading custom templates from /tmp on serverless environments.
+    Syncs with Supabase Storage to restore persisted custom templates.
     """
     templates_list = []
-    dirs_to_check = [TEMPLATES_DIR]
     custom_tmp_dir = os.path.join(tempfile.gettempdir(), 'pdf_automation_templates')
+    os.makedirs(custom_tmp_dir, exist_ok=True)
+    
+    # Sync custom templates from Supabase Storage into local/tmp storage
+    target_sync_dir = TEMPLATES_DIR if os.access(TEMPLATES_DIR, os.W_OK) else custom_tmp_dir
+    fetch_templates_from_supabase(target_sync_dir)
+
+    dirs_to_check = [TEMPLATES_DIR]
     if os.path.exists(custom_tmp_dir) and custom_tmp_dir != TEMPLATES_DIR:
         dirs_to_check.append(custom_tmp_dir)
         
@@ -92,7 +117,7 @@ def list_templates():
 def save_custom_template(template_name, html_content):
     """
     Saves a new HTML template to the templates directory after validating Jinja2 syntax.
-    Falls back to /tmp/pdf_automation_templates on read-only serverless filesystems.
+    Also uploads the template to Supabase Storage for persistent cloud storage.
     """
     if not template_name.endswith('.html'):
         safe_name = template_name.lower().replace(' ', '_') + '.html'
@@ -118,12 +143,16 @@ def save_custom_template(template_name, html_content):
             f.write(html_content)
         
     detected_vars = extract_template_variables(target_path)
-    print(f"[OK] Custom template saved successfully: {target_path} (Detected variables: {detected_vars})")
+    print(f"[OK] Custom template saved locally: {target_path} (Detected variables: {detected_vars})")
+
+    # Persist to Supabase Storage
+    upload_template_to_supabase(safe_name, html_content)
+
     return safe_name, target_path, detected_vars
 
 def delete_template(template_name):
     """
-    Deletes a template file from system or /tmp templates directory.
+    Deletes a template file from system, /tmp templates directory, and Supabase Storage.
     """
     if not template_name.endswith('.html'):
         template_name += '.html'
@@ -146,11 +175,17 @@ def delete_template(template_name):
         except (PermissionError, OSError):
             pass
             
+    # Also delete from Supabase Storage
+    supabase_deleted = delete_template_from_supabase(template_name)
+    if supabase_deleted:
+        deleted = True
+        
     if deleted:
         print(f"[OK] Template '{template_name}' removed successfully.")
         return True
     else:
         raise FileNotFoundError(f"Template '{template_name}' does not exist.")
+
 
 def find_browser():
     """
@@ -206,35 +241,54 @@ def convert_html_to_pdf(html_content, output_filename, temp_html_path=None):
         with open(temp_html_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
+    # Method 0: Try Playwright Chromium (Pixel-perfect browser engine)
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            try:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"])
+            except Exception as launch_err:
+                print(f"[INFO] Playwright Chromium missing on server ({launch_err}). Installing Chromium binaries...")
+                try:
+                    subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True, timeout=180)
+                    browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"])
+                except Exception as inst_err:
+                    raise RuntimeError(f"Playwright auto-install failed: {inst_err}")
+
+            page = browser.new_page()
+            page.set_content(html_content, wait_until="load")
+            page.pdf(path=output_filename, print_background=True, format="A4", landscape=True, margin={"top": "0mm", "right": "0mm", "bottom": "0mm", "left": "0mm"})
+            browser.close()
+            if os.path.exists(output_filename) and os.path.getsize(output_filename) > 0:
+                print(f"[OK] PDF successfully generated using Playwright Chromium: {output_filename}")
+                pdf_generated = True
+                return output_filename
+    except Exception as e:
+        error_messages.append(f"Playwright error: {str(e)}")
+
     # Method 1: Try Headless Edge / Chrome
     browser_exe = find_browser()
     if browser_exe:
         try:
             file_url = f"file:///{temp_html_path.replace('\\', '/')}"
-            cmd = [
-                browser_exe,
-                "--headless",
-                "--no-sandbox",
-                "--disable-gpu",
-                "--no-pdf-header-footer",
-                "--run-all-compositor-stages-before-draw",
-                "--virtual-time-budget=2000",
-                "--print-to-pdf=" + output_filename,
-                file_url
-            ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
-            if os.path.exists(output_filename) and os.path.getsize(output_filename) > 0:
-                print(f"[OK] PDF successfully generated using Headless Browser ({os.path.basename(browser_exe)}): {output_filename}")
-                pdf_generated = True
-                return output_filename
-            else:
-                cmd[1] = "--headless=new"
-                result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            for headless_flag in ["--headless=new", "--headless"]:
+                cmd = [
+                    browser_exe,
+                    headless_flag,
+                    "--no-sandbox",
+                    "--disable-gpu",
+                    "--no-pdf-header-footer",
+                    "--run-all-compositor-stages-before-draw",
+                    "--virtual-time-budget=2000",
+                    "--print-to-pdf=" + output_filename,
+                    file_url
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
                 if os.path.exists(output_filename) and os.path.getsize(output_filename) > 0:
                     print(f"[OK] PDF successfully generated using Headless Browser ({os.path.basename(browser_exe)}): {output_filename}")
                     pdf_generated = True
                     return output_filename
-                error_messages.append(f"Headless browser exit code {result.returncode}: {result.stderr}")
+            error_messages.append(f"Headless browser exit code {result.returncode}: {result.stderr}")
         except Exception as e:
             error_messages.append(f"Headless browser error: {str(e)}")
 
@@ -242,12 +296,32 @@ def convert_html_to_pdf(html_content, output_filename, temp_html_path=None):
     if not pdf_generated:
         try:
             from xhtml2pdf import pisa
+            clean_html = html_content
+            # Strip 100% table heights which cause ReportLab TypeError in xhtml2pdf
+            clean_html = clean_html.replace('height="100%"', '').replace("height='100%'", '').replace('height: 100%;', '')
+
+            css_var_map = {
+                "var(--ink)": "#12141C",
+                "var(--muted)": "#5B6270",
+                "var(--faint)": "#9198A6",
+                "var(--line)": "#E7E9EE",
+                "var(--cyan)": "#1EC8F0",
+                "var(--blue)": "#2F6DF6",
+                "var(--violet)": "#8B3DF5",
+                "var(--magenta)": "#D537D6",
+                "var(--paper)": "#FFFFFF"
+            }
+            for var_key, hex_val in css_var_map.items():
+                clean_html = clean_html.replace(var_key, hex_val)
+
             with open(output_filename, "wb") as pdf_file:
-                pisa_status = pisa.CreatePDF(html_content, dest=pdf_file)
+                pisa_status = pisa.CreatePDF(clean_html, dest=pdf_file)
             if not pisa_status.err and os.path.exists(output_filename):
                 print(f"[OK] PDF successfully generated using xhtml2pdf: {output_filename}")
                 pdf_generated = True
                 return output_filename
+            else:
+                error_messages.append(f"xhtml2pdf error: status_err={pisa_status.err}")
         except Exception as e:
             error_messages.append(f"xhtml2pdf error: {str(e)}")
 
